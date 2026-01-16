@@ -151,45 +151,54 @@ class _FormPageState extends State<FormPage> {
             if (state is ProfileFormState) {
               return SingleChildScrollView(
                 padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Complete Your Profile',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    const Text(
-                      'Please answer all questions to continue',
-                      style: TextStyle(fontSize: 14, color: Colors.grey),
-                    ),
-                    const SizedBox(height: 24),
-                    ...state.questions.asMap().entries.map((entry) {
-                      final question = entry.value;
-                      return _buildQuestionWidget(context, question);
-                    }),
-                    const SizedBox(height: 32),
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: state.isCompleted
-                            ? () => _handleSubmit(state)
-                            : null,
-                        style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          backgroundColor: state.isCompleted
-                              ? Colors.blue
-                              : Colors.grey[300],
-                        ),
-                        child: const Text(
-                          'Continue to Survey',
-                          style: TextStyle(fontSize: 16, color: Colors.white),
+                child: Container(
+                  width: double.infinity,
+                  padding: EdgeInsets.all(2),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Complete Your Profile',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
-                    ),
-                  ],
+                      const Text(
+                        'Please answer all questions to continue',
+                        style: TextStyle(fontSize: 14, color: Colors.grey),
+                      ),
+                      const SizedBox(height: 24),
+                      ...state.questions.asMap().entries.map((entry) {
+                        final question = entry.value;
+                        return _buildQuestionWidget(context, question);
+                      }),
+                      const SizedBox(height: 32),
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: state.isCompleted
+                              ? () => _handleSubmit(state)
+                              : () => _handleSubmit(state),
+                          style: ElevatedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            backgroundColor: state.isCompleted
+                                ? Colors.blue
+                                : Colors.grey[300],
+                          ),
+                          child: SizedBox(
+                            child: Text(
+                              'Continue to Survey',
+                              style: TextStyle(
+                                fontSize: 16,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               );
             }
@@ -209,11 +218,15 @@ class _FormPageState extends State<FormPage> {
         children: [
           Row(
             children: [
-              Text(
-                question.question,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
+              Expanded(
+                child: Text(
+                  question.question,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
               const SizedBox(width: 4),
@@ -225,6 +238,7 @@ class _FormPageState extends State<FormPage> {
                     fontWeight: FontWeight.w600,
                     color: Colors.red,
                   ),
+                  textAlign: TextAlign.end,
                 ),
             ],
           ),
