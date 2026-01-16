@@ -1,8 +1,12 @@
 import 'package:ai_health/features/auth/pages/login_page.dart';
 import 'package:ai_health/features/form/pages/form_page.dart';
+import 'package:ai_health/features/permissions/pages/permissions_page.dart';
+import 'package:ai_health/services/permissions_service.dart';
 import 'package:ai_health/services/profile_service.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'dart:developer' as developer;
+import 'package:ai_health/main.dart' show healthConnector;
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -13,11 +17,13 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   late ProfileService _profileService;
+  late PermissionsService _permissionsService;
 
   @override
   void initState() {
     super.initState();
     _profileService = ProfileService(supabaseClient: Supabase.instance.client);
+    _permissionsService = PermissionsService(healthConnector: healthConnector);
     _checkProfileCompletion();
   }
 
@@ -33,36 +39,87 @@ class _HomePageState extends State<HomePage> {
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(builder: (context) => const FormPage()),
         );
+      } else {
+        // Profile completed, check permissions
+        _checkPermissionsCompletion();
       }
     } catch (e) {
+      developer.log('Error checking profile: $e', error: e);
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text('Error checking profile: $e')));
     }
   }
 
+  /// Check if all available permissions are granted
+  /// If not all are granted, redirect to permissions page
+  Future<void> _checkPermissionsCompletion() async {
+    try {
+      developer.log(
+        'HomePage._checkPermissionsCompletion - Starting permissions check',
+      );
+
+      final allPermissionsGranted = await _permissionsService
+          .areAllPermissionsGranted();
+
+      if (!mounted) return;
+
+      developer.log(
+        'HomePage._checkPermissionsCompletion - All permissions granted: $allPermissionsGranted',
+      );
+
+      if (!allPermissionsGranted) {
+        // Redirect to permissions page if not all permissions are granted
+        developer.log(
+          'HomePage._checkPermissionsCompletion - Redirecting to PermissionsPage',
+        );
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (context) => const PermissionsPage()),
+        );
+      } else {
+        developer.log(
+          'HomePage._checkPermissionsCompletion - All permissions granted, showing home',
+        );
+      }
+    } catch (e) {
+      developer.log('Error checking permissions: $e', error: e);
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error checking permissions: $e')));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Scaffold(
-        appBar: AppBar(
-          title: const Text('Home'),
-          actions: <Widget>[
-            IconButton(
-              onPressed: () async {
-                await Supabase.instance.client.auth.signOut();
-                if (mounted) {
-                  Navigator.of(context).pushReplacement(
-                    MaterialPageRoute(builder: (context) => const LoginPage()),
-                  );
-                }
-              },
-              icon: const Icon(Icons.logout),
-            ),
-          ],
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(
+          "Hi " +
+              "${Supabase.instance.client.auth.currentUser!.userMetadata!["name"]}!!!"
+                  .toUpperCase()
+                  .split(" ")[0] +
+              "!!!",
         ),
-        body: const Column(children: [Text("Home Page")]),
+        leading: Container(
+          padding: EdgeInsets.all(10),
+          height: 12,
+          child: CircleAvatar(child: Icon(Icons.person), radius: 12),
+        ),
+        actions: <Widget>[
+          IconButton(
+            onPressed: () async {
+              await Supabase.instance.client.auth.signOut();
+              if (mounted) {
+                Navigator.of(context).pushReplacement(
+                  MaterialPageRoute(builder: (context) => const LoginPage()),
+                );
+              }
+            },
+            icon: const Icon(Icons.logout),
+          ),
+        ],
       ),
+      body: const Column(children: [Text("Home Page")]),
     );
   }
 }
