@@ -4,6 +4,7 @@ import 'package:ai_health/features/workouts/repo/workout_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
+import 'package:ai_health/main.dart';
 
 class WorkoutsPage extends StatelessWidget {
   const WorkoutsPage({super.key});
@@ -11,7 +12,7 @@ class WorkoutsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return RepositoryProvider(
-      create: (context) => WorkoutRepository(),
+      create: (context) => WorkoutRepository(healthConnector: healthConnector),
       child: BlocProvider(
         create: (context) =>
             WorkoutBloc(repository: context.read<WorkoutRepository>())
@@ -43,7 +44,7 @@ class _WorkoutsViewState extends State<_WorkoutsView> {
     'Yoga',
     'Swimming',
     'HIIT',
-    'Other'
+    'Other',
   ];
 
   @override
@@ -60,9 +61,13 @@ class _WorkoutsViewState extends State<_WorkoutsView> {
                 padding: const EdgeInsets.all(16.0),
                 child: Column(
                   children: [
-                    const Text('Log Workout',
-                        style: TextStyle(
-                            fontSize: 18, fontWeight: FontWeight.bold)),
+                    const Text(
+                      'Log Workout',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                     const SizedBox(height: 16),
                     DropdownButtonFormField<String>(
                       value: _type,
@@ -71,7 +76,9 @@ class _WorkoutsViewState extends State<_WorkoutsView> {
                         border: OutlineInputBorder(),
                       ),
                       items: _types
-                          .map((t) => DropdownMenuItem(value: t, child: Text(t)))
+                          .map(
+                            (t) => DropdownMenuItem(value: t, child: Text(t)),
+                          )
                           .toList(),
                       onChanged: (val) => setState(() => _type = val!),
                     ),
@@ -114,17 +121,25 @@ class _WorkoutsViewState extends State<_WorkoutsView> {
                     const SizedBox(height: 16),
                     ElevatedButton(
                       onPressed: () {
-                         if (_durationController.text.isEmpty || _caloriesController.text.isEmpty) {
-                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Please fill duration and calories')));
-                           return;
-                         }
+                        if (_durationController.text.isEmpty ||
+                            _caloriesController.text.isEmpty) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text(
+                                'Please fill duration and calories',
+                              ),
+                            ),
+                          );
+                          return;
+                        }
 
                         final data = WorkoutData(
                           date: DateTime.now(),
                           type: _type,
-                          durationMinutes: int.tryParse(_durationController.text) ?? 0,
-                          caloriesBurned: int.tryParse(_caloriesController.text) ?? 0,
+                          durationMinutes:
+                              int.tryParse(_durationController.text) ?? 0,
+                          caloriesBurned:
+                              int.tryParse(_caloriesController.text) ?? 0,
                           notes: _notesController.text,
                         );
                         context.read<WorkoutBloc>().add(AddWorkoutEntry(data));
@@ -133,7 +148,8 @@ class _WorkoutsViewState extends State<_WorkoutsView> {
                         _caloriesController.clear();
                         _notesController.clear();
                         ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Workout logged')));
+                          const SnackBar(content: Text('Workout logged')),
+                        );
                       },
                       child: const Text('Save Workout'),
                     ),
@@ -141,9 +157,11 @@ class _WorkoutsViewState extends State<_WorkoutsView> {
                 ),
               ),
             ),
-             const SizedBox(height: 24),
-            const Text('Recent Workouts',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 24),
+            const Text(
+              'Recent Workouts',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
             const SizedBox(height: 8),
             BlocBuilder<WorkoutBloc, WorkoutState>(
               builder: (context, state) {
@@ -162,11 +180,18 @@ class _WorkoutsViewState extends State<_WorkoutsView> {
                     return Card(
                       child: ListTile(
                         leading: _getIcon(item.type),
-                        title: Text('${item.type} - ${item.durationMinutes} min'),
-                        subtitle: Text(DateFormat.yMMMd().add_jm().format(item.date)),
+                        title: Text(
+                          '${item.type} - ${item.durationMinutes} min',
+                        ),
+                        subtitle: Text(
+                          DateFormat.yMMMd().add_jm().format(item.date),
+                        ),
                         trailing: Text(
                           '${item.caloriesBurned} kcal',
-                          style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.orange),
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.orange,
+                          ),
                         ),
                       ),
                     );
@@ -198,7 +223,7 @@ class _WorkoutsViewState extends State<_WorkoutsView> {
       case 'Gym':
         icon = Icons.fitness_center;
         break;
-       case 'Yoga':
+      case 'Yoga':
         icon = Icons.self_improvement;
         break;
       default:

@@ -2,11 +2,13 @@ import 'package:health_connector/health_connector.dart';
 import 'package:ai_health/features/sleep/models/sleep_data.dart'; // Keeping the model for UI compatibility, but mapping it
 import 'dart:developer' as developer;
 
+import 'package:health_connector/health_connector_internal.dart';
+
 class SleepRepository {
   final HealthConnector _healthConnector;
 
-  SleepRepository({HealthConnector? healthConnector})
-      : _healthConnector = healthConnector ?? HealthConnector.instance;
+  SleepRepository({required HealthConnector healthConnector})
+    : _healthConnector = healthConnector;
 
   Future<void> saveSleepData(SleepData data) async {
     try {
@@ -15,14 +17,24 @@ class SleepRepository {
       // Health Connect uses SleepSessionRecord.
 
       final record = SleepSessionRecord(
+        id: HealthRecordId(DateTime.now().millisecondsSinceEpoch.toString()),
         startTime: data.bedTime,
         endTime: data.wakeTime,
-        startZoneOffset: data.bedTime.timeZoneOffset,
-        endZoneOffset: data.wakeTime.timeZoneOffset,
-        notes: "Quality: ${data.quality}", // Storing quality in notes as HC doesn't have a simple quality field
+        samples: [
+          SleepStageSample(
+            startTime: data.bedTime,
+            endTime: data.wakeTime,
+            stageType: SleepStage.unknown,
+          ),
+        ],
+        //: data.bedTime.timeZoneOffset,
+        // endZoneOffset: data.wakeTime.timeZoneOffset,
+        metadata: Metadata.manualEntry(),
+        notes:
+            "Quality: ${data.quality}", // Storing quality in notes as HC doesn't have a simple quality field
       );
 
-      await _healthConnector.insertRecords([record]);
+      await _healthConnector.writeRecords([record]);
       developer.log("Saved sleep record to Health Connect");
     } catch (e) {
       throw Exception('Failed to save sleep data: $e');
@@ -48,7 +60,8 @@ class SleepRepository {
       records.sort((a, b) => b.startTime.compareTo(a.startTime));
 
       return records.map((r) {
-        final durationHours = r.endTime.difference(r.startTime).inMinutes / 60.0;
+        final durationHours =
+            r.endTime.difference(r.startTime).inMinutes / 60.0;
 
         // Parse quality from notes if possible, else default
         String quality = 'Good';
@@ -64,7 +77,6 @@ class SleepRepository {
           wakeTime: r.endTime,
         );
       }).toList();
-
     } catch (e) {
       developer.log('Error fetching sleep history: $e', error: e);
       return [];
@@ -79,19 +91,19 @@ class SleepRepository {
 
     // NOTE: This implementation might delete all sleep sessions on that day.
     try {
-        final startTime = DateTime(date.year, date.month, date.day);
-        final endTime = startTime.add(const Duration(days: 1));
+      final startTime = DateTime(date.year, date.month, date.day);
+      final endTime = startTime.add(const Duration(days: 1));
 
-        await _healthConnector.deleteRecords(
-            DeleteRecordsRequest(
-                dataType: HealthDataType.sleepSession,
-                startTime: startTime,
-                endTime: endTime,
-            )
-        );
+      await _healthConnector.deleteRecords(
+        DeleteRecordsInTimeRangeRequest(
+          dataType: HealthDataType.sleepSession,
+          startTime: startTime,
+          endTime: endTime,
+        ),
+      );
     } catch (e) {
-        developer.log('Error deleting sleep data: $e');
-        throw Exception('Failed to delete sleep data');
+      developer.log('Error deleting sleep data: $e');
+      throw Exception('Failed to delete sleep data');
     }
   }
 }

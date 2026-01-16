@@ -417,34 +417,34 @@ packages:
     dependency: "direct main"
     description:
       name: health_connector
-      sha256: "1176f176513c35cd7306173ee3dec9515a1f3496c844a918212997890b1907fc"
+      sha256: "648b28d1f780018be5d2437dd6d36ec3db48b25fad4d60c2cee7fed4041cf369"
       url: "https://pub.dev"
     source: hosted
-    version: "3.0.1"
+    version: "3.1.0"
   health_connector_core:
     dependency: transitive
     description:
       name: health_connector_core
-      sha256: "38f8c1a28047a2710621c57b1bf98158247e46aea387360be6cbb4e8212cb9c8"
+      sha256: bf88a6a082c546b12dffc89e67673919839d003ca4d4170f728ccb1c906bd8a1
       url: "https://pub.dev"
     source: hosted
-    version: "3.0.1"
+    version: "3.1.0"
   health_connector_hc_android:
     dependency: transitive
     description:
       name: health_connector_hc_android
-      sha256: "3a25d31feae1108e5b4c25a343f980197b8a7d6a07448c2f6dc18477fd31e74c"
+      sha256: "3cf8d5dd76c2018452c0fc29226ee5fdb302993c0468a76f36e2afb293740f97"
       url: "https://pub.dev"
     source: hosted
-    version: "3.0.1"
+    version: "3.1.0"
   health_connector_hk_ios:
     dependency: transitive
     description:
       name: health_connector_hk_ios
-      sha256: c2fd8490fc6a06fd56f3b9e9b0262642a975ce548ff691980c2a1ab0822a67ad
+      sha256: "422c79c7acec29756f8cc57f425da83df9335eb4471584d4241a5b1c54b75286"
       url: "https://pub.dev"
     source: hosted
-    version: "3.0.1"
+    version: "3.1.0"
   health_connector_logger:
     dependency: transitive
     description:

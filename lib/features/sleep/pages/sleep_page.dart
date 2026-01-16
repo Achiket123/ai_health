@@ -4,6 +4,7 @@ import 'package:ai_health/features/sleep/repo/sleep_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
+import 'package:ai_health/main.dart';
 
 class SleepPage extends StatelessWidget {
   const SleepPage({super.key});
@@ -11,7 +12,7 @@ class SleepPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return RepositoryProvider(
-      create: (context) => SleepRepository(),
+      create: (context) => SleepRepository(healthConnector: healthConnector),
       child: BlocProvider(
         create: (context) =>
             SleepBloc(repository: context.read<SleepRepository>())
@@ -35,7 +36,9 @@ class _SleepViewState extends State<_SleepView> {
   String _quality = 'Good';
 
   Future<void> _pickTime(BuildContext context, bool isBedTime) async {
-    final initialTime = TimeOfDay.fromDateTime(isBedTime ? _bedTime : _wakeTime);
+    final initialTime = TimeOfDay.fromDateTime(
+      isBedTime ? _bedTime : _wakeTime,
+    );
     final picked = await showTimePicker(
       context: context,
       initialTime: initialTime,
@@ -46,14 +49,24 @@ class _SleepViewState extends State<_SleepView> {
       setState(() {
         if (isBedTime) {
           _bedTime = DateTime(
-              now.year, now.month, now.day, picked.hour, picked.minute);
-           // Adjust if bedTime is after wakeTime (likely previous day)
-           if (_bedTime.isAfter(_wakeTime)) {
-             _bedTime = _bedTime.subtract(const Duration(days: 1));
-           }
+            now.year,
+            now.month,
+            now.day,
+            picked.hour,
+            picked.minute,
+          );
+          // Adjust if bedTime is after wakeTime (likely previous day)
+          if (_bedTime.isAfter(_wakeTime)) {
+            _bedTime = _bedTime.subtract(const Duration(days: 1));
+          }
         } else {
           _wakeTime = DateTime(
-              now.year, now.month, now.day, picked.hour, picked.minute);
+            now.year,
+            now.month,
+            now.day,
+            picked.hour,
+            picked.minute,
+          );
         }
       });
     }
@@ -76,29 +89,41 @@ class _SleepViewState extends State<_SleepView> {
                 padding: const EdgeInsets.all(16.0),
                 child: Column(
                   children: [
-                    const Text('Log Last Night\'s Sleep',
-                        style: TextStyle(
-                            fontSize: 18, fontWeight: FontWeight.bold)),
+                    const Text(
+                      'Log Last Night\'s Sleep',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                     const SizedBox(height: 16),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceAround,
                       children: [
+                        _buildTimePicker(context, 'Bed Time', _bedTime, true),
                         _buildTimePicker(
-                            context, 'Bed Time', _bedTime, true),
-                        _buildTimePicker(
-                            context, 'Wake Time', _wakeTime, false),
+                          context,
+                          'Wake Time',
+                          _wakeTime,
+                          false,
+                        ),
                       ],
                     ),
                     const SizedBox(height: 16),
                     Text(
-                        'Duration: ${hours.toStringAsFixed(1)} hours',
-                        style: const TextStyle(fontWeight: FontWeight.bold)),
-                     const SizedBox(height: 16),
+                      'Duration: ${hours.toStringAsFixed(1)} hours',
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 16),
                     DropdownButtonFormField<String>(
                       value: _quality,
-                      decoration: const InputDecoration(labelText: 'Sleep Quality'),
+                      decoration: const InputDecoration(
+                        labelText: 'Sleep Quality',
+                      ),
                       items: ['Poor', 'Fair', 'Good', 'Excellent']
-                          .map((q) => DropdownMenuItem(value: q, child: Text(q)))
+                          .map(
+                            (q) => DropdownMenuItem(value: q, child: Text(q)),
+                          )
                           .toList(),
                       onChanged: (val) => setState(() => _quality = val!),
                     ),
@@ -114,7 +139,8 @@ class _SleepViewState extends State<_SleepView> {
                         );
                         context.read<SleepBloc>().add(AddSleepEntry(data));
                         ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Sleep log added')));
+                          const SnackBar(content: Text('Sleep log added')),
+                        );
                       },
                       child: const Text('Log Sleep'),
                     ),
@@ -123,8 +149,10 @@ class _SleepViewState extends State<_SleepView> {
               ),
             ),
             const SizedBox(height: 24),
-            const Text('Sleep History',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            const Text(
+              'Sleep History',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
             const SizedBox(height: 8),
             BlocBuilder<SleepBloc, SleepState>(
               builder: (context, state) {
@@ -144,14 +172,17 @@ class _SleepViewState extends State<_SleepView> {
                       key: Key(item.date.toIso8601String()),
                       background: Container(color: Colors.red),
                       onDismissed: (direction) {
-                        context.read<SleepBloc>().add(DeleteSleepEntry(item.date));
+                        context.read<SleepBloc>().add(
+                          DeleteSleepEntry(item.date),
+                        );
                       },
                       child: Card(
                         child: ListTile(
                           leading: const Icon(Icons.bed),
                           title: Text(DateFormat.yMMMd().format(item.date)),
                           subtitle: Text(
-                              '${item.durationHours.toStringAsFixed(1)} hrs - ${item.quality}'),
+                            '${item.durationHours.toStringAsFixed(1)} hrs - ${item.quality}',
+                          ),
                           trailing: Text(
                             '${DateFormat.Hm().format(item.bedTime)} - ${DateFormat.Hm().format(item.wakeTime)}',
                             style: const TextStyle(fontSize: 12),
@@ -170,14 +201,20 @@ class _SleepViewState extends State<_SleepView> {
   }
 
   Widget _buildTimePicker(
-      BuildContext context, String label, DateTime time, bool isBedTime) {
+    BuildContext context,
+    String label,
+    DateTime time,
+    bool isBedTime,
+  ) {
     return InkWell(
       onTap: () => _pickTime(context, isBedTime),
       child: Column(
         children: [
           Text(label, style: const TextStyle(color: Colors.grey)),
-          Text(DateFormat.Hm().format(time),
-              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+          Text(
+            DateFormat.Hm().format(time),
+            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+          ),
         ],
       ),
     );

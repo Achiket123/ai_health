@@ -10,9 +10,9 @@ part 'step_state.dart';
 class StepBloc extends Bloc<StepEvent, StepState> {
   final StepRepository _repository;
 
-  StepBloc({StepRepository? repository})
-      : _repository = repository ?? StepRepository(),
-        super(StepInitial()) {
+  StepBloc({required StepRepository repository})
+    : _repository = repository,
+      super(StepInitial()) {
     on<LoadStepDataEvent>(_onLoadStepData);
   }
 

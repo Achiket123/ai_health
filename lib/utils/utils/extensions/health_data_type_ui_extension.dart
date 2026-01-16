@@ -104,6 +104,7 @@ extension HealthDataTypeUI on HealthDataType {
       HeartRateVariabilitySDNNDataType _ => AppTexts.heartRateVariabilitySDNN,
       MenstrualFlowDataType _ => AppTexts.menstrualFlow,
       MenstrualFlowInstantDataType _ => AppTexts.menstrualFlow,
+      _ => 'Unknown Data Type',
     };
   }
 
@@ -218,6 +219,7 @@ extension HealthDataTypeUI on HealthDataType {
       MenstrualFlowDataType _ => 'Menstrual flow intensity over time (iOS)',
       MenstrualFlowInstantDataType _ =>
         'Menstrual flow intensity snapshot (Android)',
+      _ => 'Data type description not available',
     };
   }
 
@@ -320,6 +322,7 @@ extension HealthDataTypeUI on HealthDataType {
       HeartRateVariabilitySDNNDataType _ => AppIcons.favorite,
       MenstrualFlowDataType _ => AppIcons.waterDrop,
       MenstrualFlowInstantDataType _ => AppIcons.waterDrop,
+      _ => AppIcons.favorite,
     };
   }
 }
@@ -773,9 +776,7 @@ extension HealthDataTypeUIFormExtension on HealthDataType {
       const (RestingHeartRateDataType) => AppTexts.getPleaseEnterText(
         AppTexts.restingHeartRate,
       ),
-      const (WeightDataType) => AppTexts.getPleaseEnterText(
-        AppTexts.weight,
-      ),
+      const (WeightDataType) => AppTexts.getPleaseEnterText(AppTexts.weight),
       const (LeanBodyMassDataType) => AppTexts.getPleaseEnterText(
         AppTexts.leanBodyMass,
       ),
@@ -785,9 +786,7 @@ extension HealthDataTypeUIFormExtension on HealthDataType {
       const (OxygenSaturationDataType) => AppTexts.getPleaseEnterText(
         AppTexts.oxygenSaturation,
       ),
-      const (HeightDataType) => AppTexts.getPleaseEnterText(
-        AppTexts.height,
-      ),
+      const (HeightDataType) => AppTexts.getPleaseEnterText(AppTexts.height),
       const (DistanceDataType) ||
       const (CrossCountrySkiingDistanceDataType) ||
       const (CyclingDistanceDataType) ||
@@ -819,9 +818,7 @@ extension HealthDataTypeUIFormExtension on HealthDataType {
       const (RespiratoryRateDataType) => AppTexts.getPleaseEnterText(
         AppTexts.respiratoryRate,
       ),
-      const (Vo2MaxDataType) => AppTexts.getPleaseEnterText(
-        AppTexts.vo2Max,
-      ),
+      const (Vo2MaxDataType) => AppTexts.getPleaseEnterText(AppTexts.vo2Max),
       const (CyclingPowerDataType) => AppTexts.getPleaseEnterText(
         AppTexts.power,
       ),
@@ -867,9 +864,7 @@ extension HealthDataTypeUIFormExtension on HealthDataType {
       const (DietaryCalciumDataType) => AppTexts.getPleaseEnterText(
         AppTexts.calcium,
       ),
-      const (DietaryIronDataType) => AppTexts.getPleaseEnterText(
-        AppTexts.iron,
-      ),
+      const (DietaryIronDataType) => AppTexts.getPleaseEnterText(AppTexts.iron),
       const (DietaryMagnesiumDataType) => AppTexts.getPleaseEnterText(
         AppTexts.magnesium,
       ),
@@ -888,9 +883,7 @@ extension HealthDataTypeUIFormExtension on HealthDataType {
       const (DietarySodiumDataType) => AppTexts.getPleaseEnterText(
         AppTexts.sodium,
       ),
-      const (DietaryZincDataType) => AppTexts.getPleaseEnterText(
-        AppTexts.zinc,
-      ),
+      const (DietaryZincDataType) => AppTexts.getPleaseEnterText(AppTexts.zinc),
       const (DietaryVitaminADataType) => AppTexts.getPleaseEnterText(
         AppTexts.vitaminA,
       ),

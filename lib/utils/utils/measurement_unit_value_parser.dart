@@ -187,6 +187,9 @@ abstract class MeasurementUnitValueParser {
         '$MenstrualFlowInstantDataType is a complex type with flow intensity, '
         'cannot be parsed from a single string input.',
       ),
+      _ => throw UnsupportedError(
+        'Data type ${forDataType.toString()} is not supported for parsing.',
+      ),
     };
   }
 

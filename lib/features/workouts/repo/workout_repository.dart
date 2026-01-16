@@ -2,11 +2,13 @@ import 'package:health_connector/health_connector.dart';
 import 'package:ai_health/features/workouts/models/workout_data.dart';
 import 'dart:developer' as developer;
 
+import 'package:health_connector/health_connector_internal.dart';
+
 class WorkoutRepository {
   final HealthConnector _healthConnector;
 
-  WorkoutRepository({HealthConnector? healthConnector})
-      : _healthConnector = healthConnector ?? HealthConnector.instance;
+  WorkoutRepository({required HealthConnector healthConnector})
+    : _healthConnector = healthConnector;
 
   Future<void> saveWorkout(WorkoutData data) async {
     try {
@@ -18,25 +20,27 @@ class WorkoutRepository {
       final record = ExerciseSessionRecord(
         startTime: data.date,
         endTime: endTime,
-        startZoneOffset: data.date.timeZoneOffset,
-        endZoneOffset: endTime.timeZoneOffset,
+        metadata: Metadata.manualEntry(),
+        //startZoneOffset: data.date.timeZoneOffset,
+        //endZoneOffset: endTime.timeZoneOffset,
         exerciseType: exerciseType,
         notes: data.notes,
         title: data.type,
       );
 
       // We should also insert TotalEnergyBurnedRecord if calories are provided
-      await _healthConnector.insertRecords([record]);
+      await _healthConnector.writeRecords([record]);
 
       if (data.caloriesBurned > 0) {
-          final energyRecord = TotalEnergyBurnedRecord(
-              startTime: data.date,
-              endTime: endTime,
-              startZoneOffset: data.date.timeZoneOffset,
-              endZoneOffset: endTime.timeZoneOffset,
-              energy: Energy.kilocalories(data.caloriesBurned.toDouble()),
-          );
-           await _healthConnector.insertRecords([energyRecord]);
+        final energyRecord = TotalEnergyBurnedRecord(
+          startTime: data.date,
+          endTime: endTime,
+          metadata: Metadata.manualEntry(),
+          //          startZoneOffset: data.date.timeZoneOffset,
+          //        endZoneOffset: endTime.timeZoneOffset,
+          energy: Energy.kilocalories(data.caloriesBurned.toDouble()),
+        );
+        await _healthConnector.writeRecords([energyRecord]);
       }
 
       developer.log("Saved workout to Health Connect");
@@ -58,7 +62,9 @@ class WorkoutRepository {
         ),
       );
 
-      final records = response.records.whereType<ExerciseSessionRecord>().toList();
+      final records = response.records
+          .whereType<ExerciseSessionRecord>()
+          .toList();
       records.sort((a, b) => b.startTime.compareTo(a.startTime));
 
       // Note: fetching calories associated with each session is complex because they are separate records.
@@ -74,11 +80,11 @@ class WorkoutRepository {
           date: r.startTime,
           type: _mapExerciseTypeToString(r.exerciseType),
           durationMinutes: durationMinutes,
-          caloriesBurned: 0, // Placeholder as linking records is complex without UUIDs
+          caloriesBurned:
+              0, // Placeholder as linking records is complex without UUIDs
           notes: r.notes,
         );
       }).toList();
-
     } catch (e) {
       developer.log('Error fetching workout history: $e', error: e);
       return [];
@@ -86,20 +92,28 @@ class WorkoutRepository {
   }
 
   ExerciseType _mapStringToExerciseType(String type) {
-      switch (type.toLowerCase()) {
-          case 'running': return ExerciseType.running;
-          case 'walking': return ExerciseType.walking;
-          case 'cycling': return ExerciseType.cycling;
-          case 'swimming': return ExerciseType.swimmingPool; // Default to pool
-          case 'gym': return ExerciseType.strengthTraining;
-          case 'yoga': return ExerciseType.yoga;
-          case 'hiit': return ExerciseType.highIntensityIntervalTraining;
-          default: return ExerciseType.other;
-      }
+    switch (type.toLowerCase()) {
+      case 'running':
+        return ExerciseType.running;
+      case 'walking':
+        return ExerciseType.walking;
+      case 'cycling':
+        return ExerciseType.cycling;
+      case 'swimming':
+        return ExerciseType.swimmingPool; // Default to pool
+      case 'gym':
+        return ExerciseType.strengthTraining;
+      case 'yoga':
+        return ExerciseType.yoga;
+      case 'hiit':
+        return ExerciseType.highIntensityIntervalTraining;
+      default:
+        return ExerciseType.other;
+    }
   }
 
   String _mapExerciseTypeToString(ExerciseType type) {
-      // Simple reverse mapping
-      return type.toString().split('.').last;
+    // Simple reverse mapping
+    return type.toString().split('.').last;
   }
 }

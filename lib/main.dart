@@ -9,6 +9,7 @@ import 'package:ai_health/features/nutrition/bloc/nutrition_bloc.dart';
 import 'package:ai_health/features/nutrition/repo/nutrition_repo.dart';
 import 'package:ai_health/features/permissions/bloc/permissions_bloc.dart';
 import 'package:ai_health/features/permissions/pages/permissions_page.dart';
+import 'package:ai_health/features/step/repo/step_repository.dart';
 import 'package:ai_health/features/streak/bloc/streak_bloc.dart';
 import 'package:ai_health/features/streak/repo/streak_repo.dart';
 import 'package:ai_health/features/step/bloc/step_bloc.dart';
@@ -68,7 +69,11 @@ class MyApp extends StatelessWidget {
                 NutritionBloc(repository: NutritionRepository()),
           ),
           BlocProvider(create: (context) => StreakBloc(StreakRepository())),
-          BlocProvider(create: (context) => StepBloc()),
+          BlocProvider(
+            create: (context) => StepBloc(
+              repository: StepRepository(healthConnector: healthConnector),
+            ),
+          ),
         ],
         child: MaterialApp(
           title: 'AI Health',

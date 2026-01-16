@@ -1,5 +1,7 @@
 import 'package:health_connector/health_connector.dart';
 import 'package:collection/collection.dart';
+import 'package:health_connector/health_connector_internal.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class DailySteps {
   final DateTime date;
@@ -11,8 +13,8 @@ class DailySteps {
 class StepRepository {
   final HealthConnector _healthConnector;
 
-  StepRepository({HealthConnector? healthConnector})
-      : _healthConnector = healthConnector ?? HealthConnector.instance;
+  StepRepository({required HealthConnector healthConnector})
+    : _healthConnector = healthConnector;
 
   Future<List<DailySteps>> getDailySteps(int days) async {
     final now = DateTime.now();
@@ -33,16 +35,20 @@ class StepRepository {
 
       // Group by day
       final grouped = groupBy(records, (StepsRecord record) {
-        return DateTime(record.startTime.year, record.startTime.month, record.startTime.day);
+        return DateTime(
+          record.startTime.year,
+          record.startTime.month,
+          record.startTime.day,
+        );
       });
 
       List<DailySteps> dailySteps = [];
       grouped.forEach((date, dayRecords) {
-        int total = 0;
+        num total = 0;
         for (var record in dayRecords) {
-          total += record.count;
+          total += int.parse(record.count.toString());
         }
-        dailySteps.add(DailySteps(date: date, count: total));
+        dailySteps.add(DailySteps(date: date, count: total.toInt()));
       });
 
       // Sort by date

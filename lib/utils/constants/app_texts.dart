@@ -79,15 +79,23 @@ abstract final class AppTexts {
   static const String today = 'Today';
   static const String last7Days = 'Last 7 Days';
   static const String last30Days = 'Last 30 Days';
+  static const String vitals = "vitals";
 
   // endregion
 
   /// Returns the localized label for a given [HealthDataType].
   static String getLabel(HealthDataType type) {
     return switch (type) {
+      ForcedVitalCapacityDataType() => vitals,
       StepsDataType() => steps,
       WeightDataType() => weight,
-      HeightDataType() => height,
+      HeightDataType() || ElevationGainedDataType() => height,
+      PregnancyTestDataType() => "Pregnancy Test Data Type",
+      PeripheralPerfusionIndexDataType() =>
+        "Peripheral Perfusion Index Data Type",
+      ContraceptiveDataType() => "Contraceptive Data Type",
+      LactationDataType() => "Lactation Data Type",
+      PregnancyDataType() => "Pregnancy Data Type",
       BodyFatPercentageDataType() => bodyFatPercentage,
       LeanBodyMassDataType() => leanBodyMass,
       BodyTemperatureDataType() => bodyTemperature,
@@ -96,6 +104,8 @@ abstract final class AppTexts {
       BloodPressureDataType() => bloodPressure,
       SystolicBloodPressureDataType() => systolic,
       DiastolicBloodPressureDataType() => diastolic,
+      ProgesteroneTestDataType() => "Progesterone Test Data Type",
+      AlcoholicBeveragesDataType() || BloodAlcoholContentDataType() => alchohol,
       DistanceDataType() ||
       CrossCountrySkiingDistanceDataType() ||
       CyclingDistanceDataType() ||
@@ -169,6 +179,7 @@ abstract final class AppTexts {
       StairDescentSpeedDataType() => speed,
       PowerSeriesDataType() => powerSeries,
       CyclingPowerDataType() => cyclingPower,
+      RunningPowerDataType() => 'Running Power',
       ExerciseSessionDataType() => exerciseSession,
       MindfulnessSessionDataType() => mindfulnessSession,
       BoneMassDataType() => boneMass,
@@ -177,6 +188,7 @@ abstract final class AppTexts {
       BodyMassIndexDataType() => bodyMassIndex,
       WaistCircumferenceDataType() => waistCircumference,
       HeartRateVariabilitySDNNDataType() => heartRateVariabilitySDNN,
+      _ => type.toString().replaceAll('DataType', ''),
     };
   }
 
@@ -356,6 +368,7 @@ abstract final class AppTexts {
   static const String waistCircumference = 'Waist Circumference';
   static const String bodyTemperature = 'Body Temperature';
   static const String basalBodyTemperature = 'Basal Body Temperature';
+  static const String alchohol = "Alchohol Levels";
   static const String boneMass = 'Bone Mass';
   static const String bodyWaterMass = 'Body Water Mass';
   static const String heartRateVariabilityRMSSD =
