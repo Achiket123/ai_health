@@ -43,7 +43,6 @@ class VitalsRepository {
       }
     } catch (e) {
       developer.log('Error saving vitals: $e', error: e);
-      // We don't throw here to allow partial success (e.g. HC works but Supabase fails or vice versa)
     }
   }
 
@@ -69,12 +68,12 @@ class VitalsRepository {
           if (r.samples.isNotEmpty) {
              avgHr = (r.samples.map((s) => s.beatsPerMinute).reduce((a, b) => a + b) / r.samples.length).round();
           }
-          // We create a VitalData with just HR for now
+          // We create a VitalData with just HR for now, utilizing local time
           allVitals.add(VitalData(
-            date: r.startTime,
+            date: r.startTime.toLocal(),
             heartRate: avgHr,
-            stressLevel: 0, // Placeholder
-            mood: '', // Placeholder
+            stressLevel: 0,
+            mood: '',
           ));
       }
     } catch (e) {
@@ -92,8 +91,8 @@ class VitalsRepository {
             .limit(50);
 
         for (var row in response) {
-          final date = DateTime.parse(row['log_date']);
-          // Check if we have a matching HR record nearby (within 5 mins)
+          final date = DateTime.parse(row['log_date']).toLocal();
+
           final existingIndex = allVitals.indexWhere((v) =>
             v.date.difference(date).abs().inMinutes < 5 && v.heartRate != null
           );
@@ -124,7 +123,6 @@ class VitalsRepository {
       developer.log('Error fetching Supabase records: $e');
     }
 
-    // Sort combined list
     allVitals.sort((a, b) => b.date.compareTo(a.date));
     return allVitals;
   }

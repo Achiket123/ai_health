@@ -12,7 +12,6 @@ class WorkoutRepository {
     try {
       final endTime = data.date.add(Duration(minutes: data.durationMinutes));
 
-      // Map String type to ExerciseType
       ExerciseType exerciseType = _mapStringToExerciseType(data.type);
 
       final record = ExerciseSessionRecord(
@@ -25,7 +24,6 @@ class WorkoutRepository {
         title: data.type,
       );
 
-      // We should also insert TotalEnergyBurnedRecord if calories are provided
       await _healthConnector.insertRecords([record]);
 
       if (data.caloriesBurned > 0) {
@@ -48,7 +46,7 @@ class WorkoutRepository {
   Future<List<WorkoutData>> getWorkoutHistory() async {
     try {
       final now = DateTime.now();
-      final startTime = now.subtract(const Duration(days: 90)); // Last 90 days
+      final startTime = now.subtract(const Duration(days: 90));
 
       final response = await _healthConnector.readRecords(
         ReadRecordsInTimeRangeRequest(
@@ -61,20 +59,17 @@ class WorkoutRepository {
       final records = response.records.whereType<ExerciseSessionRecord>().toList();
       records.sort((a, b) => b.startTime.compareTo(a.startTime));
 
-      // Note: fetching calories associated with each session is complex because they are separate records.
-      // For simplicity/MVP, we might not fetch exact calories linked to session unless we do a correlated query.
-      // We will set calories to 0 or try to fetch if possible.
-      // Optimized approach: Fetch all energy records in range and match manually?
-      // For now, we return 0 for calories on read, or implement a separate fetch.
-      // Let's assume we read just the session info.
-
       return records.map((r) {
         final durationMinutes = r.endTime.difference(r.startTime).inMinutes;
+
+        // Return with local time
+        final localStartTime = r.startTime.toLocal();
+
         return WorkoutData(
-          date: r.startTime,
+          date: localStartTime,
           type: _mapExerciseTypeToString(r.exerciseType),
           durationMinutes: durationMinutes,
-          caloriesBurned: 0, // Placeholder as linking records is complex without UUIDs
+          caloriesBurned: 0,
           notes: r.notes,
         );
       }).toList();
@@ -90,7 +85,7 @@ class WorkoutRepository {
           case 'running': return ExerciseType.running;
           case 'walking': return ExerciseType.walking;
           case 'cycling': return ExerciseType.cycling;
-          case 'swimming': return ExerciseType.swimmingPool; // Default to pool
+          case 'swimming': return ExerciseType.swimmingPool;
           case 'gym': return ExerciseType.strengthTraining;
           case 'yoga': return ExerciseType.yoga;
           case 'hiit': return ExerciseType.highIntensityIntervalTraining;
@@ -99,7 +94,6 @@ class WorkoutRepository {
   }
 
   String _mapExerciseTypeToString(ExerciseType type) {
-      // Simple reverse mapping
       return type.toString().split('.').last;
   }
 }

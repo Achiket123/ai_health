@@ -1,5 +1,6 @@
 import 'package:health_connector/health_connector.dart';
 import 'package:collection/collection.dart';
+import 'dart:developer' as developer;
 
 class DailySteps {
   final DateTime date;
@@ -16,8 +17,8 @@ class StepRepository {
 
   Future<List<DailySteps>> getDailySteps(int days) async {
     final now = DateTime.now();
+    // Start from midnight 'days' ago
     final startDate = now.subtract(Duration(days: days));
-    // Align to start of the first day
     final startTime = DateTime(startDate.year, startDate.month, startDate.day);
 
     try {
@@ -31,9 +32,10 @@ class StepRepository {
 
       final records = response.records;
 
-      // Group by day
+      // Group by LOCAL day
       final grouped = groupBy(records, (StepsRecord record) {
-        return DateTime(record.startTime.year, record.startTime.month, record.startTime.day);
+        final localDate = record.startTime.toLocal();
+        return DateTime(localDate.year, localDate.month, localDate.day);
       });
 
       List<DailySteps> dailySteps = [];
@@ -48,9 +50,13 @@ class StepRepository {
       // Sort by date
       dailySteps.sort((a, b) => a.date.compareTo(b.date));
 
+      developer.log("StepRepository: Fetched ${dailySteps.length} daily entries.");
+
       return dailySteps;
     } catch (e) {
-      throw Exception('Failed to fetch steps: $e');
+      developer.log("StepRepository: Error fetching steps: $e", error: e);
+      // Return empty list instead of throwing to avoid UI crash
+      return [];
     }
   }
 }

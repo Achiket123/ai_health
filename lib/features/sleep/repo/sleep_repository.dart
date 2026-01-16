@@ -1,5 +1,5 @@
 import 'package:health_connector/health_connector.dart';
-import 'package:ai_health/features/sleep/models/sleep_data.dart'; // Keeping the model for UI compatibility, but mapping it
+import 'package:ai_health/features/sleep/models/sleep_data.dart';
 import 'dart:developer' as developer;
 
 class SleepRepository {
@@ -10,16 +10,12 @@ class SleepRepository {
 
   Future<void> saveSleepData(SleepData data) async {
     try {
-      // Map SleepData to SleepSessionRecord
-      // Note: SleepData has duration, bedTime, wakeTime.
-      // Health Connect uses SleepSessionRecord.
-
       final record = SleepSessionRecord(
         startTime: data.bedTime,
         endTime: data.wakeTime,
         startZoneOffset: data.bedTime.timeZoneOffset,
         endZoneOffset: data.wakeTime.timeZoneOffset,
-        notes: "Quality: ${data.quality}", // Storing quality in notes as HC doesn't have a simple quality field
+        notes: "Quality: ${data.quality}",
       );
 
       await _healthConnector.insertRecords([record]);
@@ -32,7 +28,7 @@ class SleepRepository {
   Future<List<SleepData>> getSleepHistory() async {
     try {
       final now = DateTime.now();
-      final startTime = now.subtract(const Duration(days: 30)); // Last 30 days
+      final startTime = now.subtract(const Duration(days: 30));
 
       final response = await _healthConnector.readRecords(
         ReadRecordsInTimeRangeRequest(
@@ -50,18 +46,21 @@ class SleepRepository {
       return records.map((r) {
         final durationHours = r.endTime.difference(r.startTime).inMinutes / 60.0;
 
-        // Parse quality from notes if possible, else default
         String quality = 'Good';
         if (r.notes != null && r.notes!.startsWith("Quality: ")) {
           quality = r.notes!.substring(9);
         }
 
+        // Convert timestamps to local time for display logic
+        final localStartTime = r.startTime.toLocal();
+        final localEndTime = r.endTime.toLocal();
+
         return SleepData(
-          date: r.startTime, // Using start time as the date key
+          date: localStartTime,
           durationHours: durationHours,
           quality: quality,
-          bedTime: r.startTime,
-          wakeTime: r.endTime,
+          bedTime: localStartTime,
+          wakeTime: localEndTime,
         );
       }).toList();
 
@@ -72,12 +71,6 @@ class SleepRepository {
   }
 
   Future<void> deleteSleepData(DateTime date) async {
-    // Deleting by time range is tricky if we don't have UUIDs.
-    // health_connector `deleteRecords` usually takes IDs.
-    // However, the current API might allow deletion by time range.
-    // If we only have date, we try to delete sleep sessions intersecting with that day.
-
-    // NOTE: This implementation might delete all sleep sessions on that day.
     try {
         final startTime = DateTime(date.year, date.month, date.day);
         final endTime = startTime.add(const Duration(days: 1));

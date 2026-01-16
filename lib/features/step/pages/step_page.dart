@@ -2,7 +2,6 @@ import 'package:ai_health/features/step/bloc/step_bloc.dart' as step_bloc;
 import 'package:ai_health/features/step/repo/step_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:health_connector/health_connector.dart';
 import 'package:intl/intl.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 

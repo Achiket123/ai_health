@@ -306,42 +306,6 @@ class _HomePageState extends State<HomePage> {
                         ],
                     ),
                   ),
-                  FeatureCard(
-                    title: 'Sleep',
-                    icon: Icons.bed,
-                    color: Colors.indigo,
-                    onTap: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (context) => const SleepPage(),
-                        ),
-                      );
-                    },
-                  ),
-                  FeatureCard(
-                    title: 'Vitals & Mood',
-                    icon: Icons.monitor_heart,
-                    color: Colors.pink,
-                    onTap: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (context) => const VitalsPage(),
-                        ),
-                      );
-                    },
-                  ),
-                  FeatureCard(
-                    title: 'Workouts',
-                    icon: Icons.fitness_center,
-                    color: Colors.teal,
-                    onTap: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (context) => const WorkoutsPage(),
-                        ),
-                      );
-                    },
-                  ),
                 ],
               ),
             ),
