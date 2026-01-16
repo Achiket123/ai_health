@@ -115,9 +115,9 @@ class _HomeRouterState extends State<_HomeRouter> {
           _permissionsChecked = true;
         });
       }
-      developer.log('Permissions check complete. All granted: $allGranted');
+      print('Permissions check complete. All granted: $allGranted');
     } catch (e) {
-      developer.log('Error checking permissions: $e', error: e);
+      print('Error checking permissions: $e', );
       if (mounted) {
         setState(() {
           _permissionsChecked = true;

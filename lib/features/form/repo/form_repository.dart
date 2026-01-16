@@ -15,14 +15,14 @@ class FormRepository {
   Future<ProfileData?> getProfileData() async {
     try {
       final user = _supabaseClient.auth.currentUser;
-      developer.log('getProfileData - Current user: ${user?.id}');
+      print('getProfileData - Current user: ${user?.id}');
 
       if (user == null) {
-        developer.log('getProfileData - User is null, returning null');
+        print('getProfileData - User is null, returning null');
         return null;
       }
 
-      developer.log('getProfileData - Fetching profile for user: ${user.id}');
+      print('getProfileData - Fetching profile for user: ${user.id}');
 
       final response = await _supabaseClient
           .from('user_profile_answers')
@@ -31,11 +31,11 @@ class FormRepository {
           .maybeSingle();
 
       if (response == null) {
-        developer.log('getProfileData - No profile found for user');
+        print('getProfileData - No profile found for user');
         return null;
       }
 
-      developer.log('getProfileData - Profile found: ${response.toString()}');
+      print('getProfileData - Profile found: ${response.toString()}');
 
       // Map response to ProfileData
       final profileData = ProfileData(
@@ -156,17 +156,14 @@ class FormRepository {
 
       return profileData;
     } on PostgrestException catch (e) {
-      developer.log(
-        'getProfileData - PostgrestException: ${e.message}',
-        error: e,
-      );
+      print('getProfileData - PostgrestException: ${e.message}');
       if (e.code == 'PGRST116') {
-        developer.log('getProfileData - No rows found (normal for new user)');
+        print('getProfileData - No rows found (normal for new user)');
         return null;
       }
       rethrow;
     } catch (e) {
-      developer.log('getProfileData - Unexpected error: $e', error: e);
+      print('getProfileData - Unexpected error: $e');
       rethrow;
     }
   }
@@ -174,7 +171,7 @@ class FormRepository {
   Future<void> saveProfileData(ProfileData profileData) async {
     try {
       final user = _supabaseClient.auth.currentUser;
-      developer.log('saveProfileData - Current user: ${user?.id}');
+      print('saveProfileData - Current user: ${user?.id}');
 
       if (user == null) {
         throw Exception('User not logged in');
@@ -200,19 +197,16 @@ class FormRepository {
         'completed_at': DateTime.now().toIso8601String(),
       };
 
-      developer.log('saveProfileData - Saving data: ${data.toString()}');
+      print('saveProfileData - Saving data: ${data.toString()}');
 
       await _supabaseClient.from('user_profile_answers').upsert(data);
 
-      developer.log('saveProfileData - Profile saved successfully');
+      print('saveProfileData - Profile saved successfully');
     } on PostgrestException catch (e) {
-      developer.log(
-        'saveProfileData - PostgrestException: ${e.message}',
-        error: e,
-      );
+      print('saveProfileData - PostgrestException: ${e.message}');
       rethrow;
     } catch (e) {
-      developer.log('saveProfileData - Error: $e', error: e);
+      print('saveProfileData - Error: $e');
       rethrow;
     }
   }
@@ -223,7 +217,7 @@ class FormRepository {
 
   Future<List<Map<String, dynamic>>> getSurveyQuestions() async {
     try {
-      developer.log('getSurveyQuestions - Loading survey questions');
+      print('getSurveyQuestions - Loading survey questions');
 
       final questions = [
         {
@@ -289,12 +283,10 @@ class FormRepository {
         },
       ];
 
-      developer.log(
-        'getSurveyQuestions - Loaded ${questions.length} questions',
-      );
+      print('getSurveyQuestions - Loaded ${questions.length} questions');
       return questions;
     } catch (e) {
-      developer.log('getSurveyQuestions - Error: $e', error: e);
+      print('getSurveyQuestions - Error: $e');
       rethrow;
     }
   }
@@ -302,8 +294,8 @@ class FormRepository {
   Future<void> saveSurveyData(List<String?> answers) async {
     try {
       final user = _supabaseClient.auth.currentUser;
-      developer.log('saveSurveyData - Current user: ${user?.id}');
-      developer.log('saveSurveyData - Answers: $answers');
+      print('saveSurveyData - Current user: ${user?.id}');
+      print('saveSurveyData - Answers: $answers');
 
       if (user == null) {
         throw Exception('User not logged in');
@@ -324,25 +316,19 @@ class FormRepository {
         'created_at': DateTime.now().toIso8601String(),
       };
 
-      developer.log('saveSurveyData - Saving data: ${data.toString()}');
+      print('saveSurveyData - Saving data: ${data.toString()}');
 
       final response = await _supabaseClient
           .from('user_survey_responses')
           .insert(data);
 
-      developer.log('saveSurveyData - Survey saved successfully: $response');
+      print('saveSurveyData - Survey saved successfully: $response');
     } on PostgrestException catch (e) {
-      developer.log(
-        'saveSurveyData - PostgrestException: ${e.message}',
-        error: e,
-      );
-      developer.log(
-        'saveSurveyData - Error details: ${e.code} - ${e.details}',
-        error: e,
-      );
+      print('saveSurveyData - PostgrestException: ${e.message}');
+      print('saveSurveyData - Error details: ${e.code} - ${e.details}');
       rethrow;
     } catch (e) {
-      developer.log('saveSurveyData - Error: $e', error: e);
+      print('saveSurveyData - Error: $e');
       rethrow;
     }
   }
@@ -350,7 +336,7 @@ class FormRepository {
   Future<List<String?>?> getSurveyData() async {
     try {
       final user = _supabaseClient.auth.currentUser;
-      developer.log('getSurveyData - Current user: ${user?.id}');
+      print('getSurveyData - Current user: ${user?.id}');
 
       if (user == null) {
         return null;
@@ -365,13 +351,11 @@ class FormRepository {
           .maybeSingle();
 
       if (response == null) {
-        developer.log('getSurveyData - No survey data found');
+        print('getSurveyData - No survey data found');
         return null;
       }
 
-      developer.log(
-        'getSurveyData - Survey data found: ${response.toString()}',
-      );
+      print('getSurveyData - Survey data found: ${response.toString()}');
 
       final answers = <String?>[
         response['exercise_frequency'] as String?,
@@ -388,13 +372,10 @@ class FormRepository {
 
       return answers;
     } on PostgrestException catch (e) {
-      developer.log(
-        'getSurveyData - PostgrestException: ${e.message}',
-        error: e,
-      );
+      print('getSurveyData - PostgrestException: ${e.message}');
       return null;
     } catch (e) {
-      developer.log('getSurveyData - Error: $e', error: e);
+      print('getSurveyData - Error: $e');
       return null;
     }
   }

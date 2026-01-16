@@ -35,7 +35,7 @@ class SleepRepository {
       );
 
       await _healthConnector.writeRecords([record]);
-      developer.log("Saved sleep record to Health Connect");
+      print("Saved sleep record to Health Connect");
     } catch (e) {
       throw Exception('Failed to save sleep data: $e');
     }
@@ -78,7 +78,7 @@ class SleepRepository {
         );
       }).toList();
     } catch (e) {
-      developer.log('Error fetching sleep history: $e', error: e);
+      print('Error fetching sleep history: $e', );
       return [];
     }
   }
@@ -102,7 +102,7 @@ class SleepRepository {
         ),
       );
     } catch (e) {
-      developer.log('Error deleting sleep data: $e');
+      print('Error deleting sleep data: $e');
       throw Exception('Failed to delete sleep data');
     }
   }

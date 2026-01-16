@@ -32,7 +32,7 @@ class PermissionsBloc extends Bloc<PermissionsEvent, PermissionsState> {
     emit(const PermissionsLoading());
 
     try {
-      developer.log('PermissionsBloc: Loading health permissions');
+      print('PermissionsBloc: Loading health permissions');
 
       // Get all permissions for the current platform
       final permissions = HealthDataType.values
@@ -47,7 +47,7 @@ class PermissionsBloc extends Bloc<PermissionsEvent, PermissionsState> {
           )
           .toList();
 
-      developer.log(
+      print(
         'PermissionsBloc: Found ${permissions.length} permissions for platform ${healthConnector.healthPlatform}',
       );
 
@@ -68,14 +68,9 @@ class PermissionsBloc extends Bloc<PermissionsEvent, PermissionsState> {
         try {
           final status = await healthConnector.getPermissionStatus(permission);
           statuses[permission] = status;
-          developer.log(
-            'PermissionsBloc: Permission $permission status: $status',
-          );
+          print('PermissionsBloc: Permission $permission status: $status');
         } catch (e) {
-          developer.log(
-            'PermissionsBloc: Error checking permission status: $e',
-            error: e,
-          );
+          print('PermissionsBloc: Error checking permission status: $e');
           // Default status if error
           statuses[permission] = PermissionStatus.denied;
         }
@@ -91,9 +86,9 @@ class PermissionsBloc extends Bloc<PermissionsEvent, PermissionsState> {
         ),
       );
 
-      developer.log('PermissionsBloc: Permissions loaded successfully');
+      print('PermissionsBloc: Permissions loaded successfully');
     } catch (e) {
-      developer.log('PermissionsBloc: Error loading permissions: $e', error: e);
+      print('PermissionsBloc: Error loading permissions: $e');
       emit(PermissionsError('Failed to load permissions: $e'));
     }
   }
@@ -103,7 +98,7 @@ class PermissionsBloc extends Bloc<PermissionsEvent, PermissionsState> {
     TogglePermissionSelection event,
     Emitter<PermissionsState> emit,
   ) async {
-    developer.log(
+    print(
       'PermissionsBloc: Toggling permission ${event.permission}, selected: ${event.isSelected}',
     );
 
@@ -133,7 +128,7 @@ class PermissionsBloc extends Bloc<PermissionsEvent, PermissionsState> {
     RequestSelectedPermissions event,
     Emitter<PermissionsState> emit,
   ) async {
-    developer.log(
+    print(
       'PermissionsBloc: Requesting ${event.permissions.length} permissions',
     );
 
@@ -146,11 +141,11 @@ class PermissionsBloc extends Bloc<PermissionsEvent, PermissionsState> {
       );
 
       // Request permissions from health connector (opens Health Connect app)
-      developer.log(
+      print(
         'PermissionsBloc: Calling healthConnector.requestPermissions() - This will open Health Connect app',
       );
       await healthConnector.requestPermissions(event.permissions);
-      developer.log(
+      print(
         'PermissionsBloc: Permission request completed, Health Connect app returned',
       );
 
@@ -162,15 +157,13 @@ class PermissionsBloc extends Bloc<PermissionsEvent, PermissionsState> {
         final permission = event.permissions[i];
 
         try {
-          developer.log(
-            'PermissionsBloc: Checking status of permission $permission',
-          );
+          print('PermissionsBloc: Checking status of permission $permission');
 
           // Get the current status after request
           final status = await healthConnector.getPermissionStatus(permission);
           permissionStatuses[permission] = status;
 
-          developer.log(
+          print(
             'PermissionsBloc: Permission $permission status after request: $status',
           );
 
@@ -180,9 +173,8 @@ class PermissionsBloc extends Bloc<PermissionsEvent, PermissionsState> {
             deniedPermissions.add(permission);
           }
         } catch (e) {
-          developer.log(
+          print(
             'PermissionsBloc: Error checking permission $permission status: $e',
-            error: e,
           );
           deniedPermissions.add(permission);
         }
@@ -203,14 +195,11 @@ class PermissionsBloc extends Bloc<PermissionsEvent, PermissionsState> {
         ),
       );
 
-      developer.log(
+      print(
         'PermissionsBloc: Request complete - Granted: ${grantedPermissions.length}, Denied: ${deniedPermissions.length}',
       );
     } catch (e) {
-      developer.log(
-        'PermissionsBloc: Error requesting permissions: $e',
-        error: e,
-      );
+      print('PermissionsBloc: Error requesting permissions: $e');
       emit(PermissionsError('Failed to request permissions: $e'));
     }
   }
@@ -220,7 +209,7 @@ class PermissionsBloc extends Bloc<PermissionsEvent, PermissionsState> {
     ClearAllPermissions event,
     Emitter<PermissionsState> emit,
   ) async {
-    developer.log('PermissionsBloc: Clearing all selected permissions');
+    print('PermissionsBloc: Clearing all selected permissions');
 
     selectedPermissions.clear();
 
@@ -242,7 +231,7 @@ class PermissionsBloc extends Bloc<PermissionsEvent, PermissionsState> {
     SelectAllPermissions event,
     Emitter<PermissionsState> emit,
   ) async {
-    developer.log('PermissionsBloc: Selecting all available permissions');
+    print('PermissionsBloc: Selecting all available permissions');
 
     selectedPermissions = List.from(allPermissions);
 
@@ -264,7 +253,7 @@ class PermissionsBloc extends Bloc<PermissionsEvent, PermissionsState> {
     SearchPermissions event,
     Emitter<PermissionsState> emit,
   ) async {
-    developer.log(
+    print(
       'PermissionsBloc: Searching permissions with query: "${event.query}"',
     );
 

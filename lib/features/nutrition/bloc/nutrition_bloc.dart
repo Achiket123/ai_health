@@ -179,7 +179,7 @@ class NutritionBloc extends Bloc<NutritionEvent, NutritionState> {
       emit(NutritionMealAdded(entry));
       _resetForm();
     } catch (e) {
-      developer.log('Error submitting nutrition: $e', error: e);
+      print('Error submitting nutrition: $e', );
       emit(NutritionError(e.toString()));
     }
   }
@@ -198,7 +198,7 @@ class NutritionBloc extends Bloc<NutritionEvent, NutritionState> {
         event.date,
       );
 
-      developer.log('Fetched ${meals.length} meals for ${event.date}');
+      print('Fetched ${meals.length} meals for ${event.date}');
       emit(
         NutritionMealsLoaded(
           meals: meals,
@@ -207,7 +207,7 @@ class NutritionBloc extends Bloc<NutritionEvent, NutritionState> {
         ),
       );
     } catch (e) {
-      developer.log('Error fetching meals: $e', error: e);
+      print('Error fetching meals: $e', );
       emit(NutritionError(e.toString()));
     }
   }
@@ -221,7 +221,7 @@ class NutritionBloc extends Bloc<NutritionEvent, NutritionState> {
       await repository.deleteMeal(event.userId, event.mealId);
       emit(const NutritionMealDeleted());
     } catch (e) {
-      developer.log('Error deleting meal: $e', error: e);
+      print('Error deleting meal: $e', );
       emit(NutritionError(e.toString()));
     }
   }

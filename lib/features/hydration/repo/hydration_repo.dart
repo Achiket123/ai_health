@@ -18,12 +18,9 @@ class HydrationRepository {
       );
 
       await healthConnector.writeRecord(hydrationRecord);
-      developer.log('HydrationRepository: Successfully wrote hydration record');
+      print('HydrationRepository: Successfully wrote hydration record');
     } catch (e) {
-      developer.log(
-        'HydrationRepository: Error writing hydration record: $e',
-        error: e,
-      );
+      print('HydrationRepository: Error writing hydration record: $e');
       rethrow;
     }
   }
@@ -36,28 +33,22 @@ class HydrationRepository {
       final startOfDay = DateTime(now.year, now.month, now.day, 0, 0, 0);
       final endOfDay = DateTime(now.year, now.month, now.day, 23, 59, 59);
 
-      developer.log('HydrationRepository: Fetching hydration for today');
+      print('HydrationRepository: Fetching hydration for today');
 
       // Try to aggregate hydration data for today
       try {
         // Alternative: Count records manually by reading all hydration records
         // Note: The exact API might differ based on health_connector version
-        developer.log(
+        print(
           'HydrationRepository: Health Connect aggregate not directly supported, returning 0',
         );
         return 0;
       } catch (e) {
-        developer.log(
-          'HydrationRepository: Could not fetch from Health Connect: $e',
-          error: e,
-        );
+        print('HydrationRepository: Could not fetch from Health Connect: $e');
         return 0;
       }
     } catch (e) {
-      developer.log(
-        'HydrationRepository: Error getting today hydration: $e',
-        error: e,
-      );
+      print('HydrationRepository: Error getting today hydration: $e');
       rethrow;
     }
   }

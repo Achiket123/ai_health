@@ -43,7 +43,7 @@ class WorkoutRepository {
         await _healthConnector.writeRecords([energyRecord]);
       }
 
-      developer.log("Saved workout to Health Connect");
+      print("Saved workout to Health Connect");
     } catch (e) {
       throw Exception('Failed to save workout: $e');
     }
@@ -86,7 +86,7 @@ class WorkoutRepository {
         );
       }).toList();
     } catch (e) {
-      developer.log('Error fetching workout history: $e', error: e);
+      print('Error fetching workout history: $e', );
       return [];
     }
   }

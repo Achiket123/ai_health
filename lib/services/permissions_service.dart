@@ -10,7 +10,7 @@ class PermissionsService {
   /// Returns true if all permissions are granted, false otherwise
   Future<bool> areAllPermissionsGranted() async {
     try {
-      developer.log(
+      print(
         'PermissionsService.areAllPermissionsGranted - Checking all permissions',
       );
 
@@ -27,12 +27,12 @@ class PermissionsService {
           )
           .toList();
 
-      developer.log(
+      print(
         'PermissionsService.areAllPermissionsGranted - Found ${allPermissions.length} permissions to check',
       );
 
       if (allPermissions.isEmpty) {
-        developer.log(
+        print(
           'PermissionsService.areAllPermissionsGranted - No permissions available',
         );
         return true; // No permissions to grant
@@ -43,7 +43,7 @@ class PermissionsService {
       for (final permission in allPermissions) {
         try {
           final status = await healthConnector.getPermissionStatus(permission);
-          developer.log(
+          print(
             'PermissionsService.areAllPermissionsGranted - Permission $permission status: $status',
           );
 
@@ -51,25 +51,21 @@ class PermissionsService {
             grantedCount++;
           }
         } catch (e) {
-          developer.log(
+          print(
             'PermissionsService.areAllPermissionsGranted - Error checking permission: $e',
-            error: e,
           );
           // If we can't check the permission, consider it not granted
         }
       }
 
       final allGranted = grantedCount == allPermissions.length;
-      developer.log(
+      print(
         'PermissionsService.areAllPermissionsGranted - All granted: $allGranted ($grantedCount/${allPermissions.length})',
       );
 
       return allGranted;
     } catch (e) {
-      developer.log(
-        'PermissionsService.areAllPermissionsGranted - Error: $e',
-        error: e,
-      );
+      print('PermissionsService.areAllPermissionsGranted - Error: $e');
       return false;
     }
   }
@@ -78,7 +74,7 @@ class PermissionsService {
   /// Returns a map with total and granted count
   Future<Map<String, int>> getPermissionStats() async {
     try {
-      developer.log(
+      print(
         'PermissionsService.getPermissionStats - Getting permission statistics',
       );
 
@@ -111,9 +107,8 @@ class PermissionsService {
             pendingCount++;
           }
         } catch (e) {
-          developer.log(
+          print(
             'PermissionsService.getPermissionStats - Error checking permission: $e',
-            error: e,
           );
           pendingCount++;
         }
@@ -126,14 +121,11 @@ class PermissionsService {
         'pending': pendingCount,
       };
 
-      developer.log('PermissionsService.getPermissionStats - Stats: $stats');
+      print('PermissionsService.getPermissionStats - Stats: $stats');
 
       return stats;
     } catch (e) {
-      developer.log(
-        'PermissionsService.getPermissionStats - Error: $e',
-        error: e,
-      );
+      print('PermissionsService.getPermissionStats - Error: $e');
       return {'total': 0, 'granted': 0, 'denied': 0, 'pending': 0};
     }
   }

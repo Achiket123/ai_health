@@ -76,7 +76,7 @@ class _HomePageState extends State<HomePage> {
       try {
         return await future;
       } catch (e) {
-        developer.log("Error fetching dashboard data part: $e", error: e);
+        print("Error fetching dashboard data part: $e", );
         return defaultValue;
       }
     }
@@ -146,7 +146,7 @@ class _HomePageState extends State<HomePage> {
         });
       }
     } catch (e) {
-      developer.log("Error loading dashboard: $e");
+      print("Error loading dashboard: $e");
       if (mounted) setState(() => _isLoadingDashboard = false);
     } finally {
       if (mounted && _isLoadingDashboard) {
@@ -169,7 +169,7 @@ class _HomePageState extends State<HomePage> {
         _checkPermissionsCompletion();
       }
     } catch (e) {
-      developer.log('Error checking profile: $e', error: e);
+      print('Error checking profile: $e', );
     }
   }
 
@@ -186,7 +186,7 @@ class _HomePageState extends State<HomePage> {
         );
       }
     } catch (e) {
-      developer.log('Error checking permissions: $e', error: e);
+      print('Error checking permissions: $e', );
     }
   }
 

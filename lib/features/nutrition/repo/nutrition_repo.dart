@@ -160,11 +160,11 @@ class NutritionRepository {
     try {
       await writeNutritionToHealthConnect(entry);
     } catch (e) {
-      developer.log('Error writing to Health Connect: $e', error: e);
+      print('Error writing to Health Connect: $e', );
       // Continue even if Health Connect fails
     }
 
-    developer.log(
+    print(
       'Meal added: ${entry.dishes.map((d) => d.dishName).join(", ")} at ${entry.mealTime}',
     );
 
@@ -198,7 +198,7 @@ class NutritionRepository {
               .toList();
         }
       } catch (e) {
-        developer.log('Backend fetch failed, using mock data: $e');
+        print('Backend fetch failed, using mock data: $e');
       }
 
       // Fallback to mock storage
@@ -217,11 +217,11 @@ class NutritionRepository {
       // Sort by meal time
       filtered.sort((a, b) => a.mealTime.compareTo(b.mealTime));
 
-      developer.log('Fetched ${filtered.length} meals for $date');
+      print('Fetched ${filtered.length} meals for $date');
 
       return filtered;
     } catch (e) {
-      developer.log('Error fetching meals for date: $e', error: e);
+      print('Error fetching meals for date: $e', );
       return [];
     }
   }
@@ -230,7 +230,7 @@ class NutritionRepository {
   /// Since NutrientRecord doesn't exist, we log it and store locally
   Future<void> writeNutritionToHealthConnect(NutritionEntry entry) async {
     try {
-      developer.log(
+      print(
         'Writing nutrition to Health Connect: '
         '${entry.nutritionInfo.calories} calories, '
         '${entry.nutritionInfo.protein}g protein, '
@@ -242,7 +242,7 @@ class NutritionRepository {
       // Data is stored locally and synced when Health Connect API supports it
       // For now, we log it and keep in mock storage
     } catch (e) {
-      developer.log('Error in writeNutritionToHealthConnect: $e', error: e);
+      print('Error in writeNutritionToHealthConnect: $e', );
     }
   }
 
@@ -263,10 +263,10 @@ class NutritionRepository {
             )
             .timeout(const Duration(seconds: 5));
       } catch (e) {
-        developer.log('Backend delete error (continuing): $e');
+        print('Backend delete error (continuing): $e');
       }
 
-      developer.log('Meal $entryId deleted from app');
+      print('Meal $entryId deleted from app');
     } catch (e) {
       throw Exception('Error deleting meal: $e');
     }

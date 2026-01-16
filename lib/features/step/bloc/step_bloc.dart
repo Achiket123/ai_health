@@ -25,7 +25,7 @@ class StepBloc extends Bloc<StepEvent, StepState> {
       final steps = await _repository.getDailySteps(event.days);
       emit(StepLoaded(stepData: steps));
     } catch (e) {
-      developer.log('StepBloc: Error loading step data: $e', error: e);
+      print('StepBloc: Error loading step data: $e', );
       emit(StepError(message: e.toString()));
     }
   }

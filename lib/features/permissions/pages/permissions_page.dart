@@ -155,10 +155,10 @@ class _PermissionsPageState extends State<PermissionsPage> {
                       onPressed: state.selectedPermissions.isEmpty
                           ? null
                           : () {
-                              developer.log(
+                              print(
                                 'PermissionsPage: User tapped Request Permissions button with ${state.selectedPermissions.length} permissions',
                               );
-                              developer.log(
+                              print(
                                 'PermissionsPage: Selected permissions: ${state.selectedPermissions.map((p) => p.toString().split('.').last).toList()}',
                               );
                               context.read<PermissionsBloc>().add(
@@ -166,7 +166,7 @@ class _PermissionsPageState extends State<PermissionsPage> {
                                   state.selectedPermissions,
                                 ),
                               );
-                              developer.log(
+                              print(
                                 'PermissionsPage: RequestSelectedPermissions event added to BLoC',
                               );
                             },

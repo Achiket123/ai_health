@@ -45,10 +45,10 @@ class HydrationBloc extends Bloc<HydrationEvent, HydrationState> {
         glassesTarget: 8,
       );
 
-      developer.log('HydrationBloc: Initialized hydration tracking for today');
+      print('HydrationBloc: Initialized hydration tracking for today');
       emit(HydrationLoaded(hydration: hydration));
     } catch (e) {
-      developer.log('HydrationBloc: Initialization error: $e', error: e);
+      print('HydrationBloc: Initialization error: $e', );
       emit(HydrationError(message: e.toString()));
     }
   }
@@ -104,7 +104,7 @@ class HydrationBloc extends Bloc<HydrationEvent, HydrationState> {
       final updatedHydration = currentState.hydration.copyWith(
         reminderTimes: remainingTimes,
       );
-      developer.log(
+      print(
         'HydrationBloc: Updated reminders. '
         '${remainingTimes.length} reminders remaining for today',
       );

@@ -28,7 +28,7 @@ class HydrationService {
         rescheduleOnReboot: true,
       );
     } catch (e) {
-      developer.log('Error setting up reminders: $e', error: e);
+      print('Error setting up reminders: $e', );
     }
   }
 
@@ -55,7 +55,7 @@ class HydrationService {
     try {
       await AndroidAlarmManager.cancel(_reminderAlarmId);
     } catch (e) {
-      developer.log('Error canceling reminders: $e', error: e);
+      print('Error canceling reminders: $e', );
     }
   }
 

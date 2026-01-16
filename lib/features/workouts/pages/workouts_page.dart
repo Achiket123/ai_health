@@ -48,7 +48,6 @@ class _WorkoutsViewState extends State<_WorkoutsView> {
 
   List<String> _getExerciseTypes() {
     final types = ExerciseType.values
-        .where((e) => e != ExerciseType.unknown)
         .map((e) => _formatExerciseType(e))
         .toList();
     types.sort();
