@@ -1,7 +1,7 @@
 import 'package:ai_health/features/auth/pages/login_page.dart';
 import 'package:ai_health/features/form/pages/form_page.dart';
-import 'package:ai_health/features/home/widgets/feature_card.dart';
 import 'package:ai_health/features/hydration/bloc/hydration_bloc.dart';
+import 'package:ai_health/features/hydration/repo/hydration_repository.dart';
 import 'package:ai_health/features/meditation/pages/meditation_page.dart';
 import 'package:ai_health/features/nutrition/pages/nutrition_page.dart';
 import 'package:ai_health/features/permissions/pages/permissions_page.dart';
@@ -14,8 +14,11 @@ import 'package:ai_health/features/sleep/repo/sleep_repository.dart';
 import 'package:ai_health/features/vitals/pages/vitals_page.dart';
 import 'package:ai_health/features/vitals/repo/vitals_repository.dart';
 import 'package:ai_health/features/vitals/models/vital_data.dart';
+import 'package:ai_health/features/workouts/models/workout_data.dart';
 import 'package:ai_health/features/workouts/pages/workouts_page.dart';
+import 'package:ai_health/features/workouts/repo/workout_repository.dart';
 import 'package:ai_health/features/step/repo/step_repository.dart';
+import 'package:collection/collection.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:ai_health/main.dart' show healthConnector;
 import 'package:ai_health/services/permissions_service.dart';
@@ -39,10 +42,15 @@ class _HomePageState extends State<HomePage> {
   late StepRepository _stepRepository;
   late SleepRepository _sleepRepository;
   late VitalsRepository _vitalsRepository;
+  late HydrationRepository _hydrationRepository;
+  late WorkoutRepository _workoutRepository;
 
   List<DailySteps> _weeklySteps = [];
   List<SleepData> _weeklySleep = [];
   List<VitalData> _weeklyVitals = [];
+  List<DailyHydration> _weeklyHydration = [];
+  List<WorkoutData> _weeklyWorkouts = [];
+
   bool _isLoadingDashboard = true;
 
   @override
@@ -53,6 +61,8 @@ class _HomePageState extends State<HomePage> {
     _stepRepository = StepRepository(healthConnector: healthConnector);
     _sleepRepository = SleepRepository(healthConnector: healthConnector);
     _vitalsRepository = VitalsRepository();
+    _hydrationRepository = HydrationRepository(healthConnector: healthConnector);
+    _workoutRepository = WorkoutRepository(healthConnector: healthConnector);
 
     _checkProfileCompletion();
     _loadDashboardData();
@@ -60,33 +70,54 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> _loadDashboardData() async {
     try {
-      // Fetch data in parallel
+      // Fetch data for the last 7 days
       final stepsFuture = _stepRepository.getDailySteps(7);
       final sleepFuture = _sleepRepository.getSleepHistory();
       final vitalsFuture = _vitalsRepository.getVitalsHistory();
+      final hydrationFuture = _hydrationRepository.getHydrationHistory(7);
+      final workoutFuture = _workoutRepository.getWorkoutHistory();
 
       final results = await Future.wait([
         stepsFuture,
         sleepFuture,
         vitalsFuture,
+        hydrationFuture,
+        workoutFuture,
       ]);
 
       if (mounted) {
         setState(() {
           _weeklySteps = results[0] as List<DailySteps>;
 
-          // Filter sleep for last 7 days and process
-          final sleepHistory = results[1] as List<SleepData>;
           final cutoff = DateTime.now().subtract(const Duration(days: 7));
-          _weeklySleep =
-              sleepHistory.where((s) => s.date.isAfter(cutoff)).toList()
-                ..sort((a, b) => a.date.compareTo(b.date));
 
-          // Filter vitals
+          // Sleep
+          final sleepHistory = results[1] as List<SleepData>;
+          _weeklySleep = sleepHistory
+              .where((s) => s.date.isAfter(cutoff))
+              .toList()
+            ..sort((a, b) => a.date.compareTo(b.date));
+
+          // Vitals
           final vitalsHistory = results[2] as List<VitalData>;
-          _weeklyVitals =
-              vitalsHistory.where((v) => v.date.isAfter(cutoff)).toList()
-                ..sort((a, b) => a.date.compareTo(b.date));
+          _weeklyVitals = vitalsHistory
+              .where((v) => v.date.isAfter(cutoff))
+              .toList()
+            ..sort((a, b) => a.date.compareTo(b.date));
+
+          // Hydration
+          final hydrationHistory = results[3] as List<DailyHydration>;
+          _weeklyHydration = hydrationHistory
+              .where((h) => h.date.isAfter(cutoff))
+              .toList()
+            ..sort((a, b) => a.date.compareTo(b.date));
+
+          // Workouts
+          final workoutHistory = results[4] as List<WorkoutData>;
+          _weeklyWorkouts = workoutHistory
+              .where((w) => w.date.isAfter(cutoff))
+              .toList()
+            ..sort((a, b) => a.date.compareTo(b.date));
 
           _isLoadingDashboard = false;
         });
@@ -94,6 +125,10 @@ class _HomePageState extends State<HomePage> {
     } catch (e) {
       developer.log("Error loading dashboard: $e");
       if (mounted) setState(() => _isLoadingDashboard = false);
+    } finally {
+       if (mounted && _isLoadingDashboard) {
+         setState(() => _isLoadingDashboard = false);
+       }
     }
   }
 
@@ -137,351 +172,517 @@ class _HomePageState extends State<HomePage> {
     final user = Supabase.instance.client.auth.currentUser;
     final name =
         user?.userMetadata?["name"]?.toString().split(" ")[0] ?? "User";
+    final now = DateTime.now();
+    final dateString = DateFormat('EEEE, d MMMM').format(now);
 
     return Scaffold(
-      backgroundColor: Colors.grey[100],
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              "Hello, $name! 👋",
-              style: const TextStyle(
-                color: Colors.black87,
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const Text(
-              "Here's your daily summary",
-              style: TextStyle(color: Colors.grey, fontSize: 14),
-            ),
-          ],
-        ),
-        actions: <Widget>[
-          Container(
-            margin: const EdgeInsets.only(right: 16),
-            child: CircleAvatar(
-              backgroundColor: Colors.blue.shade100,
-              child: Text(name.isNotEmpty ? name[0].toUpperCase() : 'U'),
-            ),
-          ),
-          IconButton(
-            onPressed: () async {
-              await Supabase.instance.client.auth.signOut();
-              if (mounted) {
-                Navigator.of(context).pushReplacement(
-                  MaterialPageRoute(builder: (context) => const LoginPage()),
-                );
-              }
-            },
-            icon: const Icon(Icons.logout, color: Colors.grey),
-          ),
-        ],
-      ),
+      backgroundColor: Colors.grey[50], // Lighter background
       body: _isLoadingDashboard
           ? const Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Combined Steps & Sleep Chart
-                  Container(
-                    height: 300,
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(20),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.grey.withOpacity(0.1),
-                          blurRadius: 10,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          "Steps & Sleep (Last 7 Days)",
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
+          : SafeArea(
+              child: CustomScrollView(
+                slivers: [
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 20.0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                dateString.toUpperCase(),
+                                style: TextStyle(
+                                  color: Colors.grey[600],
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  letterSpacing: 1.0,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                "Hello, $name",
+                                style: const TextStyle(
+                                  color: Colors.black87,
+                                  fontSize: 26,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
                           ),
-                        ),
-                        const SizedBox(height: 10),
-                        Expanded(
-                          child: SfCartesianChart(
-                            primaryXAxis: DateTimeAxis(
-                              dateFormat: DateFormat.E(),
-                              majorGridLines: const MajorGridLines(width: 0),
+                          InkWell(
+                            onTap: () {
+                               // Optional: Profile tap action
+                            },
+                            borderRadius: BorderRadius.circular(50),
+                            child: CircleAvatar(
+                              radius: 24,
+                              backgroundColor: Colors.blueGrey[100],
+                              child: Text(
+                                name.isNotEmpty ? name[0].toUpperCase() : 'U',
+                                style: const TextStyle(
+                                    color: Colors.blueGrey, fontWeight: FontWeight.bold),
+                              ),
                             ),
-                            primaryYAxis: NumericAxis(
-                              majorGridLines: const MajorGridLines(width: 0),
-                              title: AxisTitle(text: 'Steps'),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                  // Summary List
+                  SliverToBoxAdapter(
+                    child: SizedBox(
+                      height: 140,
+                      child: ListView(
+                        scrollDirection: Axis.horizontal,
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        children: [
+                          _buildSummaryCard(
+                            title: "Steps",
+                            value: _getTodaySteps().toString(),
+                            unit: "steps",
+                            icon: Icons.directions_walk,
+                            color: Colors.orangeAccent,
+                          ),
+                           _buildSummaryCard(
+                            title: "Sleep",
+                            value: _getTodaySleep(),
+                            unit: "hrs",
+                            icon: Icons.bedtime,
+                            color: Colors.indigoAccent,
+                          ),
+                          _buildSummaryCard(
+                            title: "Water",
+                            value: "${_getTodayWater()}ml",
+                            unit: "today",
+                            icon: Icons.water_drop,
+                            color: Colors.blueAccent,
+                          ),
+                           _buildSummaryCard(
+                            title: "Active",
+                            value: "${_getTodayWorkoutMins()}m",
+                            unit: "today",
+                            icon: Icons.fitness_center,
+                            color: Colors.teal,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                  const SliverPadding(padding: EdgeInsets.only(top: 24)),
+
+                  // Charts Section
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            "Activity Trends",
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black87,
                             ),
-                            axes: <ChartAxis>[
-                              NumericAxis(
-                                name: 'yAxis2',
-                                // oppposedPosition: true,
-                                title: AxisTitle(text: 'Sleep (hrs)'),
+                          ),
+                          const SizedBox(height: 16),
+                          Container(
+                            height: 250,
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(color: Colors.grey.shade200),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.03),
+                                  blurRadius: 10,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            child: SfCartesianChart(
+                              margin: EdgeInsets.zero,
+                              plotAreaBorderWidth: 0,
+                              primaryXAxis: DateTimeAxis(
+                                dateFormat: DateFormat.E(),
                                 majorGridLines: const MajorGridLines(width: 0),
+                                axisLine: const AxisLine(width: 0),
+                                labelStyle: TextStyle(color: Colors.grey[600]),
                               ),
-                            ],
-                            legend: Legend(
-                              isVisible: true,
-                              position: LegendPosition.bottom,
+                              primaryYAxis: NumericAxis(
+                                majorGridLines: MajorGridLines(width: 0.5, color: Colors.grey[200]),
+                                axisLine: const AxisLine(width: 0),
+                                labelStyle: TextStyle(color: Colors.grey[600]),
+                              ),
+                              series: [
+                                ColumnSeries<DailySteps, DateTime>(
+                                  dataSource: _weeklySteps,
+                                  xValueMapper: (DailySteps data, _) => data.date,
+                                  yValueMapper: (DailySteps data, _) => data.count,
+                                  name: 'Steps',
+                                  color: Colors.orangeAccent,
+                                  borderRadius: const BorderRadius.vertical(top: Radius.circular(6)),
+                                ),
+                              ],
                             ),
-                            series: [
-                              ColumnSeries<DailySteps, DateTime>(
-                                dataSource: _weeklySteps,
-                                xValueMapper: (DailySteps data, _) => data.date,
-                                yValueMapper: (DailySteps data, _) =>
-                                    data.count,
-                                name: 'Steps',
-                                color: Colors.blue.withOpacity(0.7),
-                              ),
-                              LineSeries<SleepData, DateTime>(
-                                dataSource: _weeklySleep,
-                                xValueMapper: (SleepData data, _) => data.date,
-                                yValueMapper: (SleepData data, _) =>
-                                    data.durationHours,
-                                name: 'Sleep',
-                                yAxisName: 'yAxis2',
-                                color: Colors.indigo,
-                                markerSettings: const MarkerSettings(
-                                  isVisible: true,
-                                ),
-                              ),
-                            ],
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
 
-                  const SizedBox(height: 24),
+                  const SliverPadding(padding: EdgeInsets.only(top: 24)),
 
-                  // Mood Graph
-                  Container(
-                    height: 250,
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(20),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.grey.withOpacity(0.1),
-                          blurRadius: 10,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          "Mood & Stress",
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
+                   SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            "Wellness Trends",
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black87,
+                            ),
                           ),
-                        ),
-                        const SizedBox(height: 10),
-                        Expanded(
-                          child: _weeklyVitals.isEmpty
-                              ? const Center(child: Text('No mood data yet'))
-                              : SfCartesianChart(
-                                  primaryXAxis: DateTimeAxis(
-                                    dateFormat: DateFormat.Md(),
-                                    majorGridLines: const MajorGridLines(
-                                      width: 0,
-                                    ),
-                                  ),
-                                  primaryYAxis: NumericAxis(
-                                    minimum: 0,
-                                    maximum: 10,
-                                    interval: 1,
-                                    majorGridLines: const MajorGridLines(
-                                      width: 0.5,
-                                    ),
-                                  ),
-                                  series: [
-                                    LineSeries<VitalData, DateTime>(
-                                      dataSource: _weeklyVitals,
-                                      xValueMapper: (VitalData data, _) =>
-                                          data.date,
-                                      yValueMapper: (VitalData data, _) =>
-                                          data.stressLevel,
-                                      name: 'Stress',
-                                      color: Colors.redAccent,
-                                      markerSettings: const MarkerSettings(
-                                        isVisible: true,
-                                      ),
-                                    ),
-                                  ],
+                          const SizedBox(height: 16),
+                          Container(
+                            height: 250,
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(color: Colors.grey.shade200),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.03),
+                                  blurRadius: 10,
+                                  offset: const Offset(0, 4),
                                 ),
-                        ),
-                        FeatureCard(
-                          title: 'Sleep',
-                          icon: Icons.bed,
-                          color: Colors.indigo,
-                          onTap: () {
-                            Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (context) => const SleepPage(),
+                              ],
+                            ),
+                            child: SfCartesianChart(
+                              margin: EdgeInsets.zero,
+                              plotAreaBorderWidth: 0,
+                              primaryXAxis: DateTimeAxis(
+                                dateFormat: DateFormat.E(),
+                                majorGridLines: const MajorGridLines(width: 0),
+                                axisLine: const AxisLine(width: 0),
+                                labelStyle: TextStyle(color: Colors.grey[600]),
                               ),
-                            );
-                          },
-                        ),
-                        FeatureCard(
-                          title: 'Vitals & Mood',
-                          icon: Icons.monitor_heart,
-                          color: Colors.pink,
-                          onTap: () {
-                            Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (context) => const VitalsPage(),
+                              primaryYAxis: NumericAxis(
+                                majorGridLines: MajorGridLines(width: 0.5, color: Colors.grey[200]),
+                                axisLine: const AxisLine(width: 0),
+                                minimum: 0,
+                                maximum: 12, // Adjusted for sleep hours or stress level
+                                labelStyle: TextStyle(color: Colors.grey[600]),
                               ),
-                            );
-                          },
-                        ),
-                        FeatureCard(
-                          title: 'Workouts',
-                          icon: Icons.fitness_center,
-                          color: Colors.teal,
-                          onTap: () {
-                            Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (context) => const WorkoutsPage(),
-                              ),
-                            );
-                          },
-                        ),
-                      ],
+                              legend: Legend(isVisible: true, position: LegendPosition.bottom),
+                              series: [
+                                SplineAreaSeries<SleepData, DateTime>(
+                                  dataSource: _weeklySleep,
+                                  xValueMapper: (SleepData data, _) => data.date,
+                                  yValueMapper: (SleepData data, _) => data.durationHours,
+                                  name: 'Sleep (hrs)',
+                                  color: Colors.indigoAccent.withOpacity(0.1),
+                                  borderColor: Colors.indigoAccent,
+                                  borderWidth: 2,
+                                ),
+                                LineSeries<VitalData, DateTime>(
+                                  dataSource: _weeklyVitals,
+                                  xValueMapper: (VitalData data, _) => data.date,
+                                  yValueMapper: (VitalData data, _) => data.stressLevel,
+                                  name: 'Stress',
+                                  color: Colors.redAccent,
+                                  width: 2,
+                                  markerSettings: const MarkerSettings(isVisible: true),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
 
-                  const SizedBox(height: 24),
 
-                  const Text(
-                    "Quick Actions",
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 16),
+                  const SliverPadding(padding: EdgeInsets.only(top: 24)),
 
-                  GridView.count(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    crossAxisCount: 2,
-                    crossAxisSpacing: 16,
-                    mainAxisSpacing: 16,
-                    childAspectRatio: 1.1,
-                    children: [
-                      FeatureCard(
-                        title: 'Steps',
-                        icon: Icons.directions_walk,
-                        color: Colors.orange,
-                        onTap: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (_) => const StepPage()),
-                        ),
-                      ),
-                      FeatureCard(
-                        title: 'Sleep',
-                        icon: Icons.bed,
-                        color: Colors.indigo,
-                        onTap: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (_) => const SleepPage()),
-                        ),
-                      ),
-                      FeatureCard(
-                        title: 'Hydration',
-                        icon: Icons.water_drop,
-                        color: Colors.blue,
-                        onTap: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => BlocProvider(
+                  // Features List
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            "Features",
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black87,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          _buildFeatureTile(
+                            context,
+                            "Steps",
+                            Icons.directions_walk,
+                            Colors.orangeAccent,
+                            const StepPage(),
+                          ),
+                          _buildFeatureTile(
+                            context,
+                            "Sleep",
+                            Icons.bedtime,
+                            Colors.indigoAccent,
+                            const SleepPage(),
+                          ),
+                          _buildFeatureTile(
+                            context,
+                            "Hydration",
+                            Icons.water_drop,
+                            Colors.blueAccent,
+                            BlocProvider(
                               create: (_) => HydrationBloc(),
                               child: const HydrationPage(),
                             ),
                           ),
-                        ),
-                      ),
-                      FeatureCard(
-                        title: 'Nutrition',
-                        icon: Icons.restaurant_menu,
-                        color: Colors.green,
-                        onTap: () {
-                          final userId =
-                              Supabase.instance.client.auth.currentUser?.id;
-                          if (userId != null)
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => NutritionPage(userId: userId),
-                              ),
-                            );
-                        },
-                      ),
-                      FeatureCard(
-                        title: 'Vitals',
-                        icon: Icons.monitor_heart,
-                        color: Colors.redAccent,
-                        onTap: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (_) => const VitalsPage()),
-                        ),
-                      ),
-                      FeatureCard(
-                        title: 'Workouts',
-                        icon: Icons.fitness_center,
-                        color: Colors.teal,
-                        onTap: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => const WorkoutsPage(),
+                          _buildFeatureTile(
+                            context,
+                            "Nutrition",
+                            Icons.restaurant_menu,
+                            Colors.green,
+                            NutritionPage(userId: user?.id ?? ''),
                           ),
-                        ),
-                      ),
-                      FeatureCard(
-                        title: 'Meditation',
-                        icon: Icons.self_improvement,
-                        color: Colors.purple,
-                        onTap: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => const MeditationPage(),
+                          _buildFeatureTile(
+                            context,
+                            "Vitals & Mood",
+                            Icons.monitor_heart,
+                            Colors.redAccent,
+                            const VitalsPage(),
                           ),
-                        ),
-                      ),
-                      FeatureCard(
-                        title: 'Streak',
-                        icon: Icons.local_fire_department,
-                        color: Colors.deepOrange,
-                        onTap: () {
-                          final userId =
-                              Supabase.instance.client.auth.currentUser?.id;
-                          if (userId != null)
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => StreakPage(userId: userId),
+                          _buildFeatureTile(
+                            context,
+                            "Workouts",
+                            Icons.fitness_center,
+                            Colors.teal,
+                            const WorkoutsPage(),
+                          ),
+                           _buildFeatureTile(
+                            context,
+                            "Meditation",
+                            Icons.self_improvement,
+                            Colors.purple,
+                            const MeditationPage(),
+                          ),
+                          _buildFeatureTile(
+                            context,
+                            "Streak",
+                            Icons.local_fire_department,
+                            Colors.deepOrange,
+                            StreakPage(userId: user?.id ?? ''),
+                          ),
+                          // Logout button
+                           Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 20),
+                            child: OutlinedButton.icon(
+                              onPressed: () async {
+                                await Supabase.instance.client.auth.signOut();
+                                if (mounted) {
+                                  Navigator.of(context).pushReplacement(
+                                    MaterialPageRoute(
+                                        builder: (context) => const LoginPage()),
+                                  );
+                                }
+                              },
+                              icon: const Icon(Icons.logout, color: Colors.grey),
+                              label: const Text("Log Out", style: TextStyle(color: Colors.grey)),
+                              style: OutlinedButton.styleFrom(
+                                side: BorderSide(color: Colors.grey.shade300),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 24),
                               ),
-                            );
-                        },
+                            ),
+                          ),
+                        ],
                       ),
-                    ],
+                    ),
                   ),
+                  const SliverPadding(padding: EdgeInsets.only(bottom: 40)),
                 ],
               ),
             ),
+    );
+  }
+
+  int _getTodaySteps() {
+    if (_weeklySteps.isEmpty) return 0;
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final todaySteps = _weeklySteps.firstWhereOrNull(
+      (s) => DateTime(s.date.year, s.date.month, s.date.day) == today,
+    );
+    return todaySteps?.count ?? 0;
+  }
+
+  String _getTodaySleep() {
+    if (_weeklySleep.isEmpty) return "0";
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    // Find sleep session that ended today (or started today, depending on logic)
+    // Usually sleep for "today" means last night's sleep which might end today morning.
+    // Let's look for sleep ending on "today".
+    // _weeklySleep is SleepData with date=startTime.
+    // We should probably check if date is today or yesterday.
+    // Let's stick to simple "started today" or "ended today" if possible.
+    // SleepRepository.getSleepHistory returns SleepData with date = startTime.
+    // If I sleep at 11 PM and wake up at 7 AM, date is yesterday.
+    // But usually people want to see "Last Night's Sleep".
+    // Let's just pick the latest one if it's within 24 hours?
+    // Or check if it matches today.
+    // For now, to be safe and consistent with "Today's Summary", I'll check if the sleep record date (start time) is today.
+    // Wait, if I sleep at 11PM, the date is yesterday.
+    // Let's check for sleep ending today.
+    // SleepData has wakeTime (endTime).
+
+    final todaySleep = _weeklySleep.firstWhereOrNull((s) {
+       final wakeDate = DateTime(s.wakeTime.year, s.wakeTime.month, s.wakeTime.day);
+       return wakeDate == today;
+    });
+
+    // Fallback: if no sleep ends today, maybe check if one started today (nap).
+    // Or just return 0.
+
+    return todaySleep?.durationHours.toStringAsFixed(1) ?? "0";
+  }
+
+  int _getTodayWater() {
+    if (_weeklyHydration.isEmpty) return 0;
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final todayHydration = _weeklyHydration.firstWhereOrNull(
+      (h) => DateTime(h.date.year, h.date.month, h.date.day) == today,
+    );
+    return todayHydration?.volumeMl ?? 0;
+  }
+
+  int _getTodayWorkoutMins() {
+    if (_weeklyWorkouts.isEmpty) return 0;
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    return _weeklyWorkouts
+        .where((w) => DateTime(w.date.year, w.date.month, w.date.day) == today)
+        .fold(0, (sum, item) => sum + item.durationMinutes);
+  }
+
+  Widget _buildSummaryCard({
+    required String title,
+    required String value,
+    required String unit,
+    required IconData icon,
+    required Color color,
+  }) {
+    return Container(
+      width: 140,
+      margin: const EdgeInsets.symmetric(horizontal: 8),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.grey.shade200),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.03),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(icon, color: color, size: 20),
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                value,
+                style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
+                ),
+              ),
+              Text(
+                "$title ($unit)",
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.grey[500],
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFeatureTile(
+    BuildContext context,
+    String title,
+    IconData icon,
+    Color color,
+    Widget page,
+  ) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.grey.shade100),
+      ),
+      child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        leading: Container(
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            color: color.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Icon(icon, color: color, size: 24),
+        ),
+        title: Text(
+          title,
+          style: const TextStyle(
+            fontWeight: FontWeight.w600,
+            fontSize: 16,
+          ),
+        ),
+        trailing: const Icon(Icons.chevron_right, color: Colors.grey),
+        onTap: () {
+           Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => page),
+            );
+        },
+      ),
     );
   }
 }

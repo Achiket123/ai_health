@@ -1,8 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:ai_health/main.dart';
-import 'package:health_connector/health_connector.dart';
-import 'package:health_connector/health_connector_internal.dart';
+import 'package:ai_health/features/hydration/repo/hydration_repository.dart';
 import '../models/hydration_model.dart';
 import 'dart:developer' as developer;
 
@@ -10,7 +9,13 @@ part 'hydration_event.dart';
 part 'hydration_state.dart';
 
 class HydrationBloc extends Bloc<HydrationEvent, HydrationState> {
-  HydrationBloc() : super(const HydrationInitial()) {
+  final HydrationRepository _hydrationRepository;
+
+  HydrationBloc()
+    : _hydrationRepository = HydrationRepository(
+        healthConnector: healthConnector,
+      ),
+      super(const HydrationInitial()) {
     on<InitializeHydrationEvent>(_onInitialize);
     on<AddGlassEvent>(_onAddGlass);
     on<SetupRemindersEvent>(_onSetupReminders);
@@ -23,31 +28,23 @@ class HydrationBloc extends Bloc<HydrationEvent, HydrationState> {
   ) async {
     emit(const HydrationLoading());
     try {
-      // Initialize with 0 glasses consumed
-      // In a real app, you'd sync with Health Connect to get today's total
       final now = DateTime.now();
-      final startOfDay = DateTime(now.year, now.month, now.day, 0, 0, 0);
-      final endOfDay = DateTime(now.year, now.month, now.day, 23, 59, 59);
+      // Fetch for 0 days ago (today)
+      final history = await _hydrationRepository.getHydrationHistory(0);
 
-      final records = await healthConnector.readRecords(
-        ReadRecordsInTimeRangeRequest(
-          dataType: HealthDataType.hydration,
-          startTime: startOfDay,
-          endTime: endOfDay,
-        ),
-      );
-      double volumeofWater = 0;
-      for (var record in records.records) {
-        volumeofWater += record.volume.inMilliliters;
+      int glasses = 0;
+      if (history.isNotEmpty) {
+        glasses = history.first.glasses;
       }
+
       final hydration = HydrationModel(
         id: DateTime.now().millisecondsSinceEpoch,
         reminderTimes: [],
         date: now,
-        glassesConsumed: (volumeofWater / 250).toInt(),
+        glassesConsumed: glasses,
         glassesTarget: 8,
       );
-      print(hydration.glassesConsumed);
+
       developer.log('HydrationBloc: Initialized hydration tracking for today');
       emit(HydrationLoaded(hydration: hydration));
     } catch (e) {
@@ -66,28 +63,12 @@ class HydrationBloc extends Bloc<HydrationEvent, HydrationState> {
         glassesConsumed: currentState.hydration.glassesConsumed + 1,
       );
 
-      // Write to Health Connect - 250ml per glass
+      // Write to Health Connect
       try {
-        final now = DateTime.now();
-
-        // Create a hydration record with 250ml (one glass of water)
-        final hydrationRecord = HydrationRecord(
-          startTime: now,
-          endTime: now.add(Duration(minutes: 2)), // Hydration is instantaneous
-          volume: const Volume.milliliters(250), // 250ml per glass
-          metadata: Metadata.internal(
-            recordingMethod: RecordingMethod.manualEntry,
-          ),
-        );
-
-        // Write the record to Health Connect
-        await healthConnector.writeRecord(hydrationRecord);
-
+        await _hydrationRepository.logGlass();
         print('Total glasses today: ${updatedHydration.glassesConsumed}');
       } catch (e) {
         print('HydrationBloc: Health Connect Write Error: $e');
-        // Still emit the local state update so the UI remains responsive
-        // The data will be stored locally and synced when Health Connect is available
       }
 
       emit(HydrationLoaded(hydration: updatedHydration));
