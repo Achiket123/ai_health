@@ -1,5 +1,5 @@
 import 'package:ai_health/features/step/bloc/step_bloc.dart' as step_bloc;
-import 'package:ai_health/features/step/models/step_model.dart';
+import 'package:ai_health/features/step/repo/step_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:health_connector/health_connector.dart';
@@ -19,6 +19,8 @@ class _StepPageState extends State<StepPage> {
   @override
   void initState() {
     super.initState();
+    // Assuming Bloc is provided by parent or we create it here if it's standalone page
+    // For now, let's assume parent provides it, but if context.read fails, we might need to wrap
     _stepBloc = context.read<step_bloc.StepBloc>();
     _stepBloc.add(step_bloc.LoadStepDataEvent(days: _selectedDays));
   }
@@ -44,21 +46,23 @@ class _StepPageState extends State<StepPage> {
         ),
         child: BlocBuilder<step_bloc.StepBloc, step_bloc.StepState>(
           builder: (context, state) {
-            print(state);
             if (state is step_bloc.StepLoading) {
               return const Center(child: CircularProgressIndicator());
             }
             if (state is step_bloc.StepLoaded) {
               return _buildDashboard(state.stepData);
             }
-            return const Center(child: Text('Failed to load step data'));
+            if (state is step_bloc.StepError) {
+              return Center(child: Text('Error: ${state.message}'));
+            }
+            return const Center(child: Text('No data loaded'));
           },
         ),
       ),
     );
   }
 
-  Widget _buildDashboard(List<StepsRecord> stepData) {
+  Widget _buildDashboard(List<DailySteps> stepData) {
     return SafeArea(
       child: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
@@ -67,7 +71,10 @@ class _StepPageState extends State<StepPage> {
           children: [
             _buildDaysSelector(),
             const SizedBox(height: 24),
-            _buildChart(stepData),
+            if (stepData.isEmpty)
+              const Center(child: Text("No step data found for this period."))
+            else
+              _buildChart(stepData),
           ],
         ),
       ),
@@ -108,8 +115,7 @@ class _StepPageState extends State<StepPage> {
     );
   }
 
-  Widget _buildChart(List<StepsRecord> stepData) {
-    print(double.parse(stepData[0].count.toString()).toInt());
+  Widget _buildChart(List<DailySteps> stepData) {
     return SizedBox(
       height: 300,
       child: SfCartesianChart(
@@ -122,14 +128,15 @@ class _StepPageState extends State<StepPage> {
           majorGridLines: const MajorGridLines(width: 0.5),
           numberFormat: NumberFormat.compact(),
         ),
+        tooltipBehavior: TooltipBehavior(enable: true),
         series: [
-          ColumnSeries<StepsRecord, DateTime>(
+          ColumnSeries<DailySteps, DateTime>(
             dataSource: stepData,
-            xValueMapper: (StepsRecord data, _) => data.startTime,
-            yValueMapper: (StepsRecord data, _) =>
-                double.parse(data.count.toString()).toInt(),
+            xValueMapper: (DailySteps data, _) => data.date,
+            yValueMapper: (DailySteps data, _) => data.count,
             color: Colors.blue.shade400,
             borderRadius: const BorderRadius.all(Radius.circular(8)),
+            name: 'Steps',
           ),
         ],
       ),

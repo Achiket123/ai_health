@@ -2,7 +2,6 @@ part of 'step_bloc.dart';
 
 abstract class StepState extends Equatable {
   const StepState();
-
   @override
   List<Object> get props => [];
 }
@@ -12,7 +11,7 @@ class StepInitial extends StepState {}
 class StepLoading extends StepState {}
 
 class StepLoaded extends StepState {
-  final List<StepsRecord> stepData;
+  final List<DailySteps> stepData;
 
   const StepLoaded({required this.stepData});
 
