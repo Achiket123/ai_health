@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:health_connector/health_connector_internal.dart';
 import 'package:ai_health/utils/constants/app_texts.dart';
 
-/// UI extensions for [HealthDataTypeCategory].
+
 extension HealthDataTypeCategoryUiExtension on HealthDataTypeCategory {
-  /// Returns the localized display name for the category.
+  
   String get displayName {
     return switch (this) {
       HealthDataTypeCategory.activity => AppTexts.activityCategory,
@@ -21,7 +21,7 @@ extension HealthDataTypeCategoryUiExtension on HealthDataTypeCategory {
     };
   }
 
-  /// Returns the icon for the category.
+  
   IconData get icon {
     return switch (this) {
       HealthDataTypeCategory.activity => Icons.directions_run,

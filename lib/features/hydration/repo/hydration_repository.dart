@@ -18,7 +18,7 @@ class HydrationRepository {
   final HealthConnector _healthConnector;
 
   HydrationRepository({required HealthConnector healthConnector})
-      : _healthConnector = healthConnector;
+    : _healthConnector = healthConnector;
 
   Future<List<DailyHydration>> getHydrationHistory(int days) async {
     final now = DateTime.now();
@@ -57,18 +57,20 @@ class HydrationRepository {
         int volumeMl = 0;
 
         if (dayRecords != null) {
-            double totalVolume = 0;
-            for (var record in dayRecords) {
-                totalVolume += record.volume.inMilliliters;
-            }
-            volumeMl = totalVolume.toInt();
+          double totalVolume = 0;
+          for (var record in dayRecords) {
+            totalVolume += record.volume.inMilliliters;
+          }
+          volumeMl = totalVolume.toInt();
         }
-
-        dailyHydration.add(DailyHydration(
-          date: dayStart,
-          volumeMl: volumeMl,
-          glasses: (volumeMl / 250).toInt(),
-        ));
+        print(volumeMl);
+        dailyHydration.add(
+          DailyHydration(
+            date: dayStart,
+            volumeMl: volumeMl,
+            glasses: (volumeMl / 250).toInt(),
+          ),
+        );
       }
 
       // Sort by date
@@ -81,22 +83,22 @@ class HydrationRepository {
   }
 
   Future<void> logGlass() async {
-     try {
-        final now = DateTime.now();
-        // Create a hydration record with 250ml (one glass of water)
-        final hydrationRecord = HydrationRecord(
-          startTime: now,
-          endTime: now.add(Duration(minutes: 2)), // Hydration is instantaneous
-          volume: const Volume.milliliters(250), // 250ml per glass
-          metadata: Metadata.internal(
-            recordingMethod: RecordingMethod.manualEntry,
-          ),
-        );
+    try {
+      final now = DateTime.now();
+      // Create a hydration record with 250ml (one glass of water)
+      final hydrationRecord = HydrationRecord(
+        startTime: now,
+        endTime: now.add(Duration(minutes: 2)), // Hydration is instantaneous
+        volume: const Volume.milliliters(250), // 250ml per glass
+        metadata: Metadata.internal(
+          recordingMethod: RecordingMethod.manualEntry,
+        ),
+      );
 
-        // Write the record to Health Connect
-        await _healthConnector.writeRecords([hydrationRecord]);
-      } catch (e) {
-        throw Exception('Failed to log hydration: $e');
-      }
+      // Write the record to Health Connect
+      await _healthConnector.writeRecords([hydrationRecord]);
+    } catch (e) {
+      throw Exception('Failed to log hydration: $e');
+    }
   }
 }

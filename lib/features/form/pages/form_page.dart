@@ -21,7 +21,7 @@ class _FormPageState extends State<FormPage> {
     _formBloc.add(LoadProfileQuestions());
   }
 
-  /// Validate all form fields before submission
+  
   String? _validateAllFields(List<ProfileQuestion> questions) {
     // Check Question 1: Age Group (required)
     if (questions[0].selectedAnswer == null ||
@@ -97,7 +97,7 @@ class _FormPageState extends State<FormPage> {
     return null; // All validations passed
   }
 
-  /// Handle form submission with validation
+  
   void _handleSubmit(ProfileFormState state) {
     final validationError = _validateAllFields(state.questions);
 

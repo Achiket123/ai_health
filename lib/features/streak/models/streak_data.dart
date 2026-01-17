@@ -20,31 +20,31 @@ class StreakData extends Equatable {
     required this.updatedAt,
   });
 
-  /// Get a specific day by DateTime
+  
   StreakDay? getDay(DateTime date) {
     final dateKey = _formatDateKey(date);
     return days[dateKey];
   }
 
-  /// Add or update a day
+  
   StreakData updateDay(StreakDay day) {
     final dateKey = _formatDateKey(day.date);
     final newDays = {...days, dateKey: day};
     return copyWith(days: newDays);
   }
 
-  /// Format date to string key (yyyy-MM-dd)
+  
   static String _formatDateKey(DateTime date) {
     return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
   }
 
-  /// Check if there's a streak on a specific date
+  
   bool hasStreakOnDate(DateTime date) {
     final day = getDay(date);
     return day != null && day.hasPhotos;
   }
 
-  /// Get all days in a date range
+  
   List<StreakDay> getDaysInRange(DateTime start, DateTime end) {
     final result = <StreakDay>[];
     for (
@@ -60,7 +60,7 @@ class StreakData extends Equatable {
     return result;
   }
 
-  /// Calculate streak from a given date backwards
+  
   int calculateStreakFromDate(DateTime date) {
     int streak = 0;
     var currentDate = date;
@@ -78,7 +78,7 @@ class StreakData extends Equatable {
     return streak;
   }
 
-  /// Copy with modifications
+  
   StreakData copyWith({
     String? id,
     String? userId,
@@ -99,7 +99,7 @@ class StreakData extends Equatable {
     );
   }
 
-  /// Convert to JSON
+  
   Map<String, dynamic> toJson() {
     return {
       'id': id,
@@ -136,7 +136,7 @@ class StreakData extends Equatable {
     );
   }
 
-  /// Create from JSON
+  
   @override
   List<Object?> get props => [
     id,

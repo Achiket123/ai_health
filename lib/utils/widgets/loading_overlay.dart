@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 
 import 'package:ai_health/utils/widgets/loading_indicator.dart';
 
-/// A widget that displays a gray transparent overlay with a loading indicator
-/// in the center. Typically used during button operations like form submission
-/// to prevent user interaction while an operation is in progress.
+
+
+
 @immutable
 final class LoadingOverlay extends StatelessWidget {
   const LoadingOverlay({
@@ -13,10 +13,10 @@ final class LoadingOverlay extends StatelessWidget {
     super.key,
   });
 
-  /// Whether the overlay should be displayed.
+  
   final bool isLoading;
 
-  /// The child widget to display behind the overlay.
+  
   final Widget child;
 
   @override

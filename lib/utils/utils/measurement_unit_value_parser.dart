@@ -1,10 +1,10 @@
 import 'package:health_connector/health_connector_internal.dart';
 
 abstract class MeasurementUnitValueParser {
-  /// Parse string input to MeasurementUnit based on the data type.
-  ///
-  /// Throws [ArgumentError] if the value is empty.
-  /// Throws [FormatException] if the value cannot be parsed or is invalid.
+  
+  
+  
+  
   static MeasurementUnit parseValue({
     required String value,
     required HealthDataType forDataType,
@@ -193,7 +193,7 @@ abstract class MeasurementUnitValueParser {
     };
   }
 
-  /// Parse integer count value (steps, floors climbed, etc.).
+  
   static Number _parseIntegerCount(String value) {
     final count = int.tryParse(value);
     if (count == null) {
@@ -205,7 +205,7 @@ abstract class MeasurementUnitValueParser {
     return Number(count);
   }
 
-  /// Parse mass value in kilograms (weight, lean body mass).
+  
   static Mass _parseMassKilograms(String value) {
     final mass = double.tryParse(value);
     if (mass == null) {
@@ -217,7 +217,7 @@ abstract class MeasurementUnitValueParser {
     return Mass.kilograms(mass);
   }
 
-  /// Parse mass value in grams (nutrients).
+  
   static Mass _parseMassGrams(String value) {
     final mass = double.tryParse(value);
     if (mass == null) {
@@ -229,7 +229,7 @@ abstract class MeasurementUnitValueParser {
     return Mass.grams(mass);
   }
 
-  /// Parse percentage value (body fat, oxygen saturation).
+  
   static Percentage _parsePercentage(String value) {
     final pct = double.tryParse(value);
     if (pct == null) {
@@ -241,7 +241,7 @@ abstract class MeasurementUnitValueParser {
     return Percentage.fromWhole(pct);
   }
 
-  /// Parse temperature value in celsius.
+  
   static Temperature _parseTemperature(String value) {
     final temp = double.tryParse(value);
     if (temp == null) {
@@ -250,7 +250,7 @@ abstract class MeasurementUnitValueParser {
     return Temperature.celsius(temp);
   }
 
-  /// Parse length/distance value in meters.
+  
   static Length _parseLength(String value) {
     final distance = double.tryParse(value);
     if (distance == null) {
@@ -262,7 +262,7 @@ abstract class MeasurementUnitValueParser {
     return Length.meters(distance);
   }
 
-  /// Parse blood glucose value in mg/dL.
+  
   static BloodGlucose _parseBloodGlucose(String value) {
     final glucose = double.tryParse(value);
     if (glucose == null) {
@@ -274,7 +274,7 @@ abstract class MeasurementUnitValueParser {
     return BloodGlucose.milligramsPerDeciliter(glucose);
   }
 
-  /// Parse pressure value in mmHg.
+  
   static Pressure _parsePressure(String value) {
     final pressure = double.tryParse(value);
     if (pressure == null) {
@@ -286,7 +286,7 @@ abstract class MeasurementUnitValueParser {
     return Pressure.millimetersOfMercury(pressure);
   }
 
-  /// Parse energy value in kilocalories.
+  
   static Energy _parseEnergy(String value) {
     final energy = double.tryParse(value);
     if (energy == null) {
@@ -298,7 +298,7 @@ abstract class MeasurementUnitValueParser {
     return Energy.kilocalories(energy);
   }
 
-  /// Parse velocity/speed value in m/s.
+  
   static Velocity _parseVelocity(String value) {
     final speed = double.tryParse(value);
     if (speed == null) {
@@ -310,7 +310,7 @@ abstract class MeasurementUnitValueParser {
     return Velocity.metersPerSecond(speed);
   }
 
-  /// Parse frequency value (heart rate, respiratory rate, cadence).
+  
   static Frequency _parseFrequency(String value) {
     final rate = double.tryParse(value);
     if (rate == null) {
@@ -322,7 +322,7 @@ abstract class MeasurementUnitValueParser {
     return Frequency.perMinute(rate);
   }
 
-  /// Parse VO2 max value.
+  
   static Number _parseVo2Max(String value) {
     final vo2 = double.tryParse(value);
     if (vo2 == null) {
@@ -334,7 +334,7 @@ abstract class MeasurementUnitValueParser {
     return Number(vo2.toInt());
   }
 
-  /// Parse volume value in liters.
+  
   static Volume _parseVolume(String value) {
     final volume = double.tryParse(value);
     if (volume == null) {
@@ -346,7 +346,7 @@ abstract class MeasurementUnitValueParser {
     return Volume.liters(volume);
   }
 
-  /// Parse power value in watts.
+  
   static Power _parsePower(String value) {
     final watts = double.tryParse(value);
     if (watts == null) {
@@ -358,7 +358,7 @@ abstract class MeasurementUnitValueParser {
     return Power.watts(watts);
   }
 
-  /// Parse double number value.
+  
   static Number _parseDoubleNumber(String value) {
     final val = double.tryParse(value);
     if (val == null) {
@@ -367,7 +367,7 @@ abstract class MeasurementUnitValueParser {
     return Number(val);
   }
 
-  /// Parse time duration value in milliseconds.
+  
   static TimeDuration _parseTimeDuration(String value) {
     final millis = double.tryParse(value);
     if (millis == null) {

@@ -30,25 +30,30 @@ class HydrationBloc extends Bloc<HydrationEvent, HydrationState> {
     try {
       final now = DateTime.now();
       // Fetch for 0 days ago (today)
-      final history = await _hydrationRepository.getHydrationHistory(0);
+      final history = await _hydrationRepository.getHydrationHistory(1);
 
       int glasses = 0;
+      double volume = 0;
       if (history.isNotEmpty) {
-        glasses = history.first.glasses;
+        for (var h in history) {
+          print(h.glasses);
+          glasses += h.glasses;
+          volume += h.volumeMl;
+        }
       }
 
       final hydration = HydrationModel(
         id: DateTime.now().millisecondsSinceEpoch,
         reminderTimes: [],
         date: now,
-        glassesConsumed: glasses,
+        glassesConsumed: (volume / 250).toInt(),
         glassesTarget: 8,
       );
 
       print('HydrationBloc: Initialized hydration tracking for today');
       emit(HydrationLoaded(hydration: hydration));
     } catch (e) {
-      print('HydrationBloc: Initialization error: $e', );
+      print('HydrationBloc: Initialization error: $e');
       emit(HydrationError(message: e.toString()));
     }
   }
@@ -112,8 +117,8 @@ class HydrationBloc extends Bloc<HydrationEvent, HydrationState> {
     }
   }
 
-  /// Generate reminder times for the day at specified intervals
-  /// Starts from now + interval and continues until 11:59 PM
+  
+  
   List<DateTime> _generateReminderTimes(int intervalMinutes) {
     final now = DateTime.now();
     final endOfDay = DateTime(now.year, now.month, now.day, 23, 59);

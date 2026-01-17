@@ -1,0 +1,65 @@
+import 'package:flutter/material.dart';
+import 'package:health_connector/health_connector_internal.dart'
+    show Frequency, HeartRateSample;
+import 'package:ai_health/src/common/constants/app_icons.dart';
+import 'package:ai_health/src/common/constants/app_texts.dart';
+import 'package:ai_health/src/features/write_health_record/widgets/write_form_fields/record_sample_form_field_group.dart';
+
+
+@immutable
+final class HeartRateMeasurementsWriteFormFieldGroup extends StatelessWidget {
+  const HeartRateMeasurementsWriteFormFieldGroup({
+    required this.startDateTime,
+    required this.endDateTime,
+    required this.onChanged,
+    super.key,
+    this.initialSamples,
+    this.validator,
+  });
+
+  final DateTime? startDateTime;
+  final DateTime? endDateTime;
+  final ValueChanged<List<HeartRateSample>?> onChanged;
+  final List<HeartRateSample>? initialSamples;
+  final String? Function(List<HeartRateSample>?)? validator;
+
+  @override
+  Widget build(BuildContext context) {
+    return RecordSampleFormFieldGroup<HeartRateSample, int>(
+      title: AppTexts.heartRateSamples,
+      startDateTime: startDateTime,
+      endDateTime: endDateTime,
+      onChanged: onChanged,
+      initialSamples: initialSamples,
+      validator: validator,
+      defaultValue: 72,
+      valueInputBuilder: (index, bpm, onBpmChanged) {
+        return TextFormField(
+          initialValue: bpm?.toString() ?? '72',
+          decoration: const InputDecoration(
+            labelText: AppTexts.sampleBpm,
+            border: OutlineInputBorder(),
+            prefixIcon: Icon(AppIcons.numbers),
+          ),
+          keyboardType: TextInputType.number,
+          onChanged: (value) {
+            final parsedBpm = int.tryParse(value);
+            if (parsedBpm != null) {
+              onBpmChanged(parsedBpm);
+            }
+          },
+        );
+      },
+      sampleFactory: (time, _, bpm) => HeartRateSample(
+        time: time,
+        rate: Frequency.perMinute(bpm.toDouble()),
+      ),
+      sampleExtractor: (sample) => (
+        time: sample.time,
+        endTime: null as DateTime?,
+        value: sample.rate.inPerMinute.round(),
+      ),
+      valueValidator: (bpm) => bpm != null && bpm > 0,
+    );
+  }
+}

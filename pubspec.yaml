@@ -55,6 +55,8 @@ dependencies:
   android_alarm_manager_plus: ^5.0.0
   flutter_local_notifications: ^18.0.0
   calendar_view: ^1.4.0
+  provider: ^6.1.5+1
+  rename_app: ^1.6.5
 dev_dependencies:
   flutter_test:
     sdk: flutter

@@ -2,9 +2,9 @@ import 'package:health_connector/health_connector_internal.dart'
     show ExerciseType;
 import 'package:ai_health/utils/constants/app_texts.dart';
 
-/// Extension providing display names for [ExerciseType] enum values.
+
 extension ExerciseTypeDisplayName on ExerciseType {
-  /// Returns the localized display name for this exercise type.
+  
   String get displayName {
     return switch (this) {
       ExerciseType.other => AppTexts.exerciseOtherWorkout,

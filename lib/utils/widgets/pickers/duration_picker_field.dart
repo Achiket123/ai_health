@@ -4,10 +4,10 @@ import 'package:ai_health/utils/constants/app_texts.dart';
 import 'package:ai_health/utils/utils/date_formatter.dart';
 import 'package:ai_health/utils/widgets/pickers/base_picker_field.dart';
 
-/// A form field widget for selecting a duration using a time picker.
-///
-/// Uses TimeOfDay to represent duration in hours and minutes (HH:MM format).
-/// Displays a read-only text field that opens a time picker when tapped.
+
+
+
+
 @immutable
 final class DurationPickerField extends BasePickerField<TimeOfDay> {
   const DurationPickerField({

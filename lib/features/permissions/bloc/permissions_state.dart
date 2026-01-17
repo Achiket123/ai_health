@@ -29,7 +29,7 @@ class PermissionsLoaded extends PermissionsState {
     required this.permissionStatuses,
   });
 
-  /// Get filtered permissions based on search query
+  
   Map<HealthDataTypeCategory, List<HealthDataPermission>>
   getFilteredPermissions() {
     if (searchQuery.isEmpty) {
@@ -51,12 +51,12 @@ class PermissionsLoaded extends PermissionsState {
     return filtered;
   }
 
-  /// Check if a permission is selected
+  
   bool isPermissionSelected(HealthDataPermission permission) {
     return selectedPermissions.contains(permission);
   }
 
-  /// Get the status of a specific permission
+  
   PermissionStatus? getPermissionStatus(HealthDataPermission permission) {
     return permissionStatuses[permission];
   }

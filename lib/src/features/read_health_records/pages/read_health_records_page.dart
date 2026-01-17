@@ -1,0 +1,347 @@
+import 'package:flutter/material.dart';
+import 'package:health_connector/health_connector_internal.dart';
+import 'package:ai_health/src/common/constants/app_icons.dart';
+import 'package:ai_health/src/common/constants/app_texts.dart';
+import 'package:ai_health/src/common/utils/mixins/date_time_range_picker_page_state_mixin.dart';
+import 'package:ai_health/src/common/utils/mixins/process_operation_with_error_handler_page_state_mixin.dart';
+import 'package:ai_health/src/common/utils/show_app_snack_bar.dart';
+import 'package:ai_health/src/common/widgets/buttons/elevated_gradient_button.dart';
+import 'package:ai_health/src/common/widgets/date_range_presets.dart';
+import 'package:ai_health/src/common/widgets/health_data_type_dropdown_field.dart';
+import 'package:ai_health/src/common/widgets/loading_overlay.dart';
+import 'package:ai_health/src/common/widgets/pickers/date_time_range_picker_column.dart';
+import 'package:ai_health/src/features/permissions/pages/permissions_page.dart';
+import 'package:ai_health/src/features/read_health_records/read_health_records_change_notifier.dart';
+import 'package:ai_health/src/features/read_health_records/widgets/read_health_record_results_section.dart';
+import 'package:provider/provider.dart' show Provider, Selector;
+
+
+
+
+
+@immutable
+final class ReadHealthRecordsPage extends StatefulWidget {
+  const ReadHealthRecordsPage({required this.healthPlatform, super.key});
+
+  final HealthPlatform healthPlatform;
+
+  @override
+  State<ReadHealthRecordsPage> createState() => _ReadHealthRecordsPageState();
+}
+
+class _ReadHealthRecordsPageState extends State<ReadHealthRecordsPage>
+    with
+        DateTimeRangePickerPageStateMixin<ReadHealthRecordsPage>,
+        ProcessOperationWithErrorHandlerPageStateMixin<ReadHealthRecordsPage> {
+  final _formKey = GlobalKey<FormState>();
+  final _pageSizeController = TextEditingController();
+  final _dataOriginsController = TextEditingController();
+  HealthDataType<HealthRecord, MeasurementUnit>? _selectedDataType;
+  SortDescriptor _sortDescriptor = SortDescriptor.timeAscending;
+  int _pageSize = 100;
+
+  @override
+  void initState() {
+    super.initState();
+    _pageSizeController.text = _pageSize.toString();
+    _pageSizeController.addListener(_onPageSizeChanged);
+  }
+
+  void _onPageSizeChanged() {
+    final pageSize = int.tryParse(_pageSizeController.text) ?? _pageSize;
+    setState(() {
+      _pageSize = pageSize;
+    });
+  }
+
+  @override
+  void dispose() {
+    _pageSizeController.dispose();
+    _dataOriginsController.dispose();
+    super.dispose();
+  }
+
+  
+  Future<void> _readRecords() async {
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
+
+    final notifier = Provider.of<ReadHealthRecordsChangeNotifier>(
+      context,
+      listen: false,
+    );
+
+    await process(() async {
+      // Parse data origins from comma-separated input
+      final dataOriginsText = _dataOriginsController.text.trim();
+      final dataOrigins = dataOriginsText.isEmpty
+          ? <DataOrigin>[]
+          : dataOriginsText
+                .split(',')
+                .map((e) => e.replaceAll(' ', ''))
+                .where((e) => e.isNotEmpty)
+                .map(DataOrigin.new)
+                .toList();
+
+      await notifier.readHealthRecords(
+        dataType: _selectedDataType!,
+        startTime: startDateTime!,
+        endTime: endDateTime!,
+        pageSize: _pageSize,
+        dataOrigins: dataOrigins,
+        sortDescriptor: _sortDescriptor,
+      );
+    });
+  }
+
+  Future<void> _loadNextPage() async {
+    final notifier = Provider.of<ReadHealthRecordsChangeNotifier>(
+      context,
+      listen: false,
+    );
+    final nextPageRequest = notifier.nextPageRequest;
+    if (nextPageRequest == null) {
+      return;
+    }
+
+    await process(notifier.loadNextPage);
+  }
+
+  Future<void> _deleteRecord(HealthRecord record) async {
+    if (!mounted) {
+      return;
+    }
+
+    final notifier = Provider.of<ReadHealthRecordsChangeNotifier>(
+      context,
+      listen: false,
+    );
+
+    await process(() async {
+      await notifier.deleteRecord(record, _selectedDataType!);
+
+      if (!mounted) {
+        return;
+      }
+
+      showAppSnackBar(
+        context,
+        SnackBarType.success,
+        AppTexts.recordDeletedSuccessfully,
+      );
+    });
+  }
+
+  
+  Future<void> _onRefresh() async {
+    if (_formKey.currentState!.validate()) {
+      await _readRecords();
+    }
+  }
+
+  
+  void _onDataTypeChanged(
+    HealthDataType<HealthRecord, MeasurementUnit>? value,
+  ) {
+    setState(() {
+      _selectedDataType = value;
+      final notifier = Provider.of<ReadHealthRecordsChangeNotifier>(
+        context,
+        listen: false,
+      );
+      notifier.reset();
+    });
+  }
+
+  
+  String? _validateDataType(
+    HealthDataType<HealthRecord, MeasurementUnit>? value,
+  ) {
+    if (value == null) {
+      return AppTexts.pleaseSelectDataType;
+    }
+    return null;
+  }
+
+  
+  void _onPresetSelected(
+    DateTime startDate,
+    TimeOfDay startTime,
+    DateTime endDate,
+    TimeOfDay endTime,
+  ) {
+    setStartDate(startDate);
+    setStartTime(startTime);
+    setEndDate(endDate);
+    setEndTime(endTime);
+  }
+
+  
+  String? _validatePageSize(String? value) {
+    if (value == null || value.isEmpty) {
+      return null; // Optional field
+    }
+    final pageSize = int.tryParse(value);
+    if (pageSize == null) {
+      return AppTexts.pleaseEnterValidNumber;
+    }
+    if (pageSize < 1 || pageSize > 10000) {
+      return AppTexts.pageSizeMustBeBetween1And10000;
+    }
+    return null;
+  }
+
+  
+  void _navigateToPermissions() {
+    Navigator.push(
+      context,
+      MaterialPageRoute<Widget>(
+        builder: (_) => Provider<HealthConnector>.value(
+          value: Provider.of<HealthConnector>(
+            context,
+            listen: false,
+          ),
+          child: PermissionsPage(
+            healthPlatform: widget.healthPlatform,
+          ),
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Selector<ReadHealthRecordsChangeNotifier, bool>(
+      selector: (_, notifier) => notifier.isLoading,
+      builder: (context, isLoading, _) {
+        return LoadingOverlay(
+          isLoading: isLoading,
+          child: Scaffold(
+            appBar: AppBar(title: const Text(AppTexts.readHealthRecords)),
+            body: Column(
+              children: [
+                Expanded(
+                  child: RefreshIndicator(
+                    onRefresh: _onRefresh,
+                    child: SingleChildScrollView(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      padding: const EdgeInsets.all(20.0),
+                      child: Form(
+                        key: _formKey,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            HealthDataTypeDropdownField(
+                              initialValue: _selectedDataType,
+                              onChanged: _onDataTypeChanged,
+                              validator: _validateDataType,
+                              items: HealthDataType.values
+                                  .where(
+                                    (type) =>
+                                        type.supportedHealthPlatforms.contains(
+                                          widget.healthPlatform,
+                                        ),
+                                  )
+                                  .toList(),
+                            ),
+                            const SizedBox(height: 16),
+                            DateRangePresets(
+                              onPresetSelected: _onPresetSelected,
+                            ),
+                            const SizedBox(height: 12),
+                            DateTimeRangePickerColumn(
+                              startDate: startDate,
+                              startTime: startTime,
+                              endDate: endDate,
+                              endTime: endTime,
+                              onStartDateChanged: setStartDate,
+                              onStartTimeChanged: setStartTime,
+                              onEndDateChanged: setEndDate,
+                              onEndTimeChanged: setEndTime,
+                            ),
+                            const SizedBox(height: 16),
+                            TextFormField(
+                              controller: _pageSizeController,
+                              decoration: const InputDecoration(
+                                labelText: AppTexts.pageSize,
+                                border: OutlineInputBorder(),
+                                prefixIcon: Icon(AppIcons.list),
+                              ),
+                              keyboardType: TextInputType.number,
+                              validator: _validatePageSize,
+                            ),
+                            const SizedBox(height: 16),
+                            DropdownButtonFormField<SortDescriptor>(
+                              initialValue: _sortDescriptor,
+                              decoration: const InputDecoration(
+                                labelText: AppTexts.sortOrder,
+                                border: OutlineInputBorder(),
+                                prefixIcon: Icon(AppIcons.sort),
+                              ),
+                              items: [
+                                DropdownMenuItem(
+                                  value: SortDescriptor.timeAscending,
+                                  child: Text(
+                                    AppTexts.timeAscending,
+                                    style: Theme.of(
+                                      context,
+                                    ).textTheme.bodyLarge,
+                                  ),
+                                ),
+                                DropdownMenuItem(
+                                  value: SortDescriptor.timeDescending,
+                                  child: Text(
+                                    AppTexts.timeDescending,
+                                    style: Theme.of(
+                                      context,
+                                    ).textTheme.bodyLarge,
+                                  ),
+                                ),
+                              ],
+                              onChanged: (value) {
+                                if (value != null) {
+                                  setState(() {
+                                    _sortDescriptor = value;
+                                  });
+                                }
+                              },
+                            ),
+                            const SizedBox(height: 16),
+                            TextFormField(
+                              controller: _dataOriginsController,
+                              decoration: const InputDecoration(
+                                labelText: AppTexts.dataOrigins,
+                                hintText: AppTexts.dataOriginsHint,
+                                border: OutlineInputBorder(),
+                                prefixIcon: Icon(AppIcons.dataOrigins),
+                                helperText: AppTexts.dataOriginsHelper,
+                              ),
+                              keyboardType: TextInputType.text,
+                            ),
+                            const SizedBox(height: 16),
+                            ReadHealthRecordResultsSection(
+                              healthPlatform: widget.healthPlatform,
+                              onCheckPermissions: _navigateToPermissions,
+                              onDeleteRecord: _deleteRecord,
+                              onLoadNextPage: _loadNextPage,
+                              isLoading: isLoading,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                ElevatedGradientButton(
+                  onPressed: isLoading ? null : _readRecords,
+                  label: AppTexts.read.toUpperCase(),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+}

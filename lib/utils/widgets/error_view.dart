@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:ai_health/utils/constants/app_icons.dart';
 import 'package:ai_health/utils/constants/app_texts.dart';
 
-/// A reusable widget for displaying error states with recovery options.
-///
-/// Shows an error icon, user-friendly message, and a retry button to help
-/// users recover from errors gracefully.
+
+
+
+
 @immutable
 final class ErrorView extends StatelessWidget {
   const ErrorView({
@@ -16,17 +16,17 @@ final class ErrorView extends StatelessWidget {
     this.onRetry,
   });
 
-  /// The error title to display. If null, defaults to a generic error title.
+  
   final String? title;
 
-  /// The error message to display to the user.
+  
   final String message;
 
-  /// The icon to display at the top of the error view.
+  
   final IconData icon;
 
-  /// Callback function to execute when the retry button is pressed.
-  /// If null, the retry button will not be shown.
+  
+  
   final VoidCallback? onRetry;
 
   @override

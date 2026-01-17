@@ -54,11 +54,11 @@ class StepRepository {
         int count = 0;
 
         if (dayRecords != null) {
-            double total = 0;
-            for (var record in dayRecords) {
-              total += double.parse(record.count.toString());
-            }
-            count = total.toInt();
+          double total = 0;
+          for (var record in dayRecords) {
+            total += double.parse(record.count.toString());
+          }
+          count = total.toInt();
         }
 
         dailySteps.add(DailySteps(date: dayStart, count: count));
@@ -66,7 +66,7 @@ class StepRepository {
 
       // Sort by date (ascending)
       dailySteps.sort((a, b) => a.date.compareTo(b.date));
-
+      print("DailySteps ${dailySteps}");
       return dailySteps;
     } catch (e) {
       throw Exception('Failed to fetch steps: $e');

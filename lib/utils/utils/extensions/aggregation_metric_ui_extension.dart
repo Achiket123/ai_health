@@ -4,9 +4,9 @@ import 'package:health_connector/health_connector_internal.dart'
 import 'package:ai_health/utils/constants/app_icons.dart';
 import 'package:ai_health/utils/constants/app_texts.dart';
 
-/// Extension on [AggregationMetric] to provide UI-related properties.
+
 extension AggregationMetricUI on AggregationMetric {
-  /// Returns the display name for this aggregation metric.
+  
   String get displayName {
     return switch (this) {
       AggregationMetric.sum => AppTexts.sum,
@@ -16,7 +16,7 @@ extension AggregationMetricUI on AggregationMetric {
     };
   }
 
-  /// Returns the icon for this aggregation metric.
+  
   IconData get icon {
     return switch (this) {
       AggregationMetric.sum => AppIcons.sum,

@@ -2,10 +2,10 @@ import 'package:health_connector/health_connector_internal.dart'
     show BloodPressureMeasurementLocation;
 import 'package:ai_health/utils/constants/app_texts.dart';
 
-/// Extension providing display names for [BloodPressureMeasurementLocation].
+
 extension BloodPressureMeasurementLocationExtension
     on BloodPressureMeasurementLocation {
-  /// User-friendly display name for this measurement location.
+  
   String get displayName => switch (this) {
     BloodPressureMeasurementLocation.leftWrist => AppTexts.leftWrist,
     BloodPressureMeasurementLocation.rightWrist => AppTexts.rightWrist,

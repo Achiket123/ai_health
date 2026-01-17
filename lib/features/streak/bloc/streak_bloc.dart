@@ -15,7 +15,7 @@ class StreakBloc extends Bloc<StreakEvent, StreakState> {
     on<DeleteStreakDataEvent>(_onDeleteStreakData);
   }
 
-  /// Handle fetching streak data
+  
   Future<void> _onFetchStreakData(
     FetchStreakDataEvent event,
     Emitter<StreakState> emit,
@@ -32,7 +32,7 @@ class StreakBloc extends Bloc<StreakEvent, StreakState> {
     }
   }
 
-  /// Handle adding photo to a day
+  
   Future<void> _onAddPhotoToDay(
     AddPhotoToDayEvent event,
     Emitter<StreakState> emit,
@@ -73,7 +73,7 @@ class StreakBloc extends Bloc<StreakEvent, StreakState> {
     }
   }
 
-  /// Handle removing photo from a day
+  
   Future<void> _onRemovePhotoFromDay(
     RemovePhotoFromDayEvent event,
     Emitter<StreakState> emit,
@@ -96,7 +96,7 @@ class StreakBloc extends Bloc<StreakEvent, StreakState> {
     }
   }
 
-  /// Handle fetching month data
+  
   Future<void> _onFetchMonthData(
     FetchMonthDataEvent event,
     Emitter<StreakState> emit,
@@ -118,7 +118,7 @@ class StreakBloc extends Bloc<StreakEvent, StreakState> {
     }
   }
 
-  /// Handle deleting streak data
+  
   Future<void> _onDeleteStreakData(
     DeleteStreakDataEvent event,
     Emitter<StreakState> emit,

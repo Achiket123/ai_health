@@ -8,7 +8,7 @@ abstract class StreakEvent extends Equatable {
   List<Object?> get props => [];
 }
 
-/// Fetch streak data for the user
+
 class FetchStreakDataEvent extends StreakEvent {
   final String userId;
 
@@ -18,7 +18,7 @@ class FetchStreakDataEvent extends StreakEvent {
   List<Object?> get props => [userId];
 }
 
-/// Add photo to a specific day
+
 class AddPhotoToDayEvent extends StreakEvent {
   final String userId;
   final DateTime date;
@@ -34,7 +34,7 @@ class AddPhotoToDayEvent extends StreakEvent {
   List<Object?> get props => [userId, date, photoPath];
 }
 
-/// Remove photo from a day
+
 class RemovePhotoFromDayEvent extends StreakEvent {
   final String userId;
   final DateTime date;
@@ -50,7 +50,7 @@ class RemovePhotoFromDayEvent extends StreakEvent {
   List<Object?> get props => [userId, date, photoPath];
 }
 
-/// Update specific day's photos
+
 class UpdateDayPhotosEvent extends StreakEvent {
   final String userId;
   final StreakDay day;
@@ -61,7 +61,7 @@ class UpdateDayPhotosEvent extends StreakEvent {
   List<Object?> get props => [userId, day];
 }
 
-/// Fetch month data
+
 class FetchMonthDataEvent extends StreakEvent {
   final String userId;
   final DateTime month;
@@ -72,7 +72,7 @@ class FetchMonthDataEvent extends StreakEvent {
   List<Object?> get props => [userId, month];
 }
 
-/// Delete user streak data
+
 class DeleteStreakDataEvent extends StreakEvent {
   final String userId;
 

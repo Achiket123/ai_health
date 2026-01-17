@@ -1,5 +1,6 @@
 import 'package:ai_health/features/nutrition/bloc/nutrition_event.dart';
 import 'package:ai_health/features/nutrition/bloc/nutrition_state.dart';
+import 'package:ai_health/main.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
@@ -28,17 +29,6 @@ class _NutritionPageState extends State<NutritionPage> {
   final _vegetableNameController = TextEditingController();
   final _vegetableWeightController = TextEditingController();
   final _notesController = TextEditingController();
-
-  @override
-  void initState() {
-    super.initState();
-    // Fetch meals for today
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<NutritionBloc>().add(
-        NutritionFetchMealsForDate(widget.userId, _selectedDate),
-      );
-    });
-  }
 
   @override
   void dispose() {
@@ -612,7 +602,9 @@ class _NutritionPageState extends State<NutritionPage> {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => NutritionBloc(repository: NutritionRepository()),
+      create: (context) => NutritionBloc(
+        repository: NutritionRepository(healthConnector: healthConnector),
+      )..add(NutritionFetchMealsForDate(widget.userId, _selectedDate)),
       child: Scaffold(
         appBar: AppBar(
           title: const Text('Nutrition Tracker'),

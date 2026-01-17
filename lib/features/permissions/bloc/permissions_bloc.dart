@@ -24,7 +24,7 @@ class PermissionsBloc extends Bloc<PermissionsEvent, PermissionsState> {
     on<SearchPermissions>(_onSearchPermissions);
   }
 
-  /// Load all available health permissions from health connector
+  
   Future<void> _onLoadHealthPermissions(
     LoadHealthPermissions event,
     Emitter<PermissionsState> emit,
@@ -93,7 +93,7 @@ class PermissionsBloc extends Bloc<PermissionsEvent, PermissionsState> {
     }
   }
 
-  /// Toggle selection of a specific permission
+  
   Future<void> _onTogglePermissionSelection(
     TogglePermissionSelection event,
     Emitter<PermissionsState> emit,
@@ -123,7 +123,7 @@ class PermissionsBloc extends Bloc<PermissionsEvent, PermissionsState> {
     }
   }
 
-  /// Request the selected permissions from the system
+  
   Future<void> _onRequestSelectedPermissions(
     RequestSelectedPermissions event,
     Emitter<PermissionsState> emit,
@@ -204,7 +204,7 @@ class PermissionsBloc extends Bloc<PermissionsEvent, PermissionsState> {
     }
   }
 
-  /// Clear all selected permissions
+  
   Future<void> _onClearAllPermissions(
     ClearAllPermissions event,
     Emitter<PermissionsState> emit,
@@ -226,7 +226,7 @@ class PermissionsBloc extends Bloc<PermissionsEvent, PermissionsState> {
     }
   }
 
-  /// Select all available permissions
+  
   Future<void> _onSelectAllPermissions(
     SelectAllPermissions event,
     Emitter<PermissionsState> emit,
@@ -248,7 +248,7 @@ class PermissionsBloc extends Bloc<PermissionsEvent, PermissionsState> {
     }
   }
 
-  /// Search permissions by query
+  
   Future<void> _onSearchPermissions(
     SearchPermissions event,
     Emitter<PermissionsState> emit,

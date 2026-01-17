@@ -7,8 +7,8 @@ class ProfileService {
   ProfileService({required SupabaseClient supabaseClient})
     : _supabaseClient = supabaseClient;
 
-  /// Check if user has completed their profile
-  /// Returns true if profile exists, false otherwise
+  
+  
   Future<bool> isProfileCompleted() async {
     try {
       final user = _supabaseClient.auth.currentUser;
@@ -45,8 +45,8 @@ class ProfileService {
     }
   }
 
-  /// Check if user has completed their survey
-  /// Returns true if survey exists, false otherwise
+  
+  
   Future<bool> isSurveyCompleted() async {
     try {
       final user = _supabaseClient.auth.currentUser;
@@ -84,8 +84,8 @@ class ProfileService {
     }
   }
 
-  /// Check if user has completed both profile and survey
-  /// Returns true if both are completed, false otherwise
+  
+  
   Future<bool> isBothCompleted() async {
     try {
       final profileCompleted = await isProfileCompleted();

@@ -9,17 +9,17 @@ abstract class StreakState extends Equatable {
   List<Object?> get props => [];
 }
 
-/// Initial state
+
 class StreakInitial extends StreakState {
   const StreakInitial();
 }
 
-/// Loading state
+
 class StreakLoading extends StreakState {
   const StreakLoading();
 }
 
-/// Loaded state with streak data
+
 class StreakLoaded extends StreakState {
   final StreakData streakData;
   final Map<String, StreakDay> monthData;
@@ -40,7 +40,7 @@ class StreakLoaded extends StreakState {
   List<Object?> get props => [streakData, monthData];
 }
 
-/// Photo added state
+
 class PhotoAdded extends StreakState {
   final String photoPath;
   final StreakDay day;
@@ -51,7 +51,7 @@ class PhotoAdded extends StreakState {
   List<Object?> get props => [photoPath, day];
 }
 
-/// Photo removed state
+
 class PhotoRemoved extends StreakState {
   final String photoPath;
   final StreakDay day;
@@ -62,7 +62,7 @@ class PhotoRemoved extends StreakState {
   List<Object?> get props => [photoPath, day];
 }
 
-/// Error state
+
 class StreakError extends StreakState {
   final String message;
 

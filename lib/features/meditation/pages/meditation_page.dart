@@ -2,6 +2,7 @@ import 'package:ai_health/features/meditation/bloc/meditation_bloc.dart';
 import 'package:ai_health/features/meditation/data/meditation_repository.dart';
 import 'package:ai_health/features/meditation/widgets/meditation_timer_view.dart';
 import 'package:ai_health/features/meditation/widgets/video_list_item.dart';
+import 'package:ai_health/main.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -11,7 +12,8 @@ class MeditationPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return RepositoryProvider(
-      create: (context) => MeditationRepository(),
+      create: (context) =>
+          MeditationRepository(healthConnector: healthConnector),
       child: BlocProvider(
         create: (context) =>
             MeditationBloc(repository: context.read<MeditationRepository>())

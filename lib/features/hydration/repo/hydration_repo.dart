@@ -4,7 +4,7 @@ import '../models/hydration_model.dart';
 import 'dart:developer' as developer;
 
 class HydrationRepository {
-  /// Write a hydration record (250ml glass) to Health Connect
+  
   Future<void> addHydrationGlass() async {
     try {
       final now = DateTime.now();
@@ -25,8 +25,8 @@ class HydrationRepository {
     }
   }
 
-  /// Get today's hydration data
-  /// Returns the number of glasses consumed based on Health Connect data
+  
+  
   Future<int> getTodayHydration() async {
     try {
       final now = DateTime.now();
@@ -53,17 +53,17 @@ class HydrationRepository {
     }
   }
 
-  /// Get hydration target for the day (default: 8 glasses)
+  
   int getDailyTarget() {
     return 8; // 8 glasses per day
   }
 
-  /// Convert milliliters to glasses (250ml per glass)
+  
   int millilitersToGlasses(double milliliters) {
     return (milliliters / 250).round();
   }
 
-  /// Convert glasses to milliliters
+  
   double glassesToMilliliters(int glasses) {
     return glasses * 250.0;
   }

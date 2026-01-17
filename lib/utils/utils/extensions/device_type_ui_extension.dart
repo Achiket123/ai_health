@@ -4,9 +4,9 @@ import 'package:health_connector/health_connector_internal.dart'
 import 'package:ai_health/utils/constants/app_icons.dart';
 import 'package:ai_health/utils/constants/app_texts.dart';
 
-/// Extension on [DeviceType] to provide UI-related properties.
+
 extension DeviceTypeUI on DeviceType {
-  /// Returns the display name for this device type.
+  
   String get displayName {
     return switch (this) {
       DeviceType.phone => AppTexts.phone,
@@ -21,7 +21,7 @@ extension DeviceTypeUI on DeviceType {
     };
   }
 
-  /// Returns the icon for this device type.
+  
   IconData get icon {
     return switch (this) {
       DeviceType.phone => AppIcons.phone,

@@ -1,0 +1,313 @@
+import 'package:flutter/material.dart';
+import 'package:health_connector/health_connector_internal.dart';
+import 'package:ai_health/src/common/constants/app_icons.dart';
+import 'package:ai_health/src/common/constants/app_texts.dart';
+import 'package:ai_health/src/common/utils/extensions/display_name_extensions.dart';
+import 'package:ai_health/src/common/utils/mixins/date_time_range_picker_page_state_mixin.dart';
+import 'package:ai_health/src/common/utils/mixins/process_operation_with_error_handler_page_state_mixin.dart';
+import 'package:ai_health/src/common/utils/show_app_snack_bar.dart';
+import 'package:ai_health/src/common/widgets/buttons/elevated_gradient_button.dart';
+import 'package:ai_health/src/common/widgets/date_range_presets.dart';
+import 'package:ai_health/src/common/widgets/health_data_type_dropdown_field.dart';
+import 'package:ai_health/src/common/widgets/loading_overlay.dart';
+import 'package:ai_health/src/common/widgets/pickers/date_time_range_picker_column.dart';
+import 'package:ai_health/src/features/aggregate_health_data/aggregate_health_data_change_notifier.dart';
+import 'package:ai_health/src/features/aggregate_health_data/widgets/aggregate_result_card.dart';
+import 'package:provider/provider.dart' show Provider, Selector;
+
+
+
+
+
+@immutable
+final class AggregateDataPage extends StatefulWidget {
+  const AggregateDataPage({required this.healthPlatform, super.key});
+
+  final HealthPlatform healthPlatform;
+
+  @override
+  State<AggregateDataPage> createState() => _AggregateDataPageState();
+}
+
+class _AggregateDataPageState extends State<AggregateDataPage>
+    with
+        DateTimeRangePickerPageStateMixin<AggregateDataPage>,
+        ProcessOperationWithErrorHandlerPageStateMixin<AggregateDataPage> {
+  final _formKey = GlobalKey<FormState>();
+  HealthDataType<HealthRecord, MeasurementUnit>? _selectedDataType;
+  AggregationMetric? _selectedMetric;
+  HealthDataType<HealthRecord, Pressure>? _selectedBloodPressureSubtype;
+
+  Future<void> _aggregate() async {
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
+
+    // Validate blood pressure subtype is selected when
+    // BloodPressureDataType is selected
+    if (_selectedDataType is BloodPressureDataType &&
+        _selectedBloodPressureSubtype == null) {
+      if (!mounted) {
+        return;
+      }
+      showAppSnackBar(
+        context,
+        SnackBarType.error,
+        AppTexts.pleaseSelectBloodPressureType,
+      );
+      return;
+    }
+
+    final notifier = Provider.of<AggregateDataChangeNotifier>(
+      context,
+      listen: false,
+    );
+
+    await process(() async {
+      await notifier.aggregateData(
+        dataType: _selectedDataType!,
+        aggregationMetric: _selectedMetric!,
+        startTime: startDateTime!,
+        endTime: endDateTime!,
+        bloodPressureSubtype: _selectedBloodPressureSubtype,
+      );
+    });
+  }
+
+  
+  void _onDataTypeChanged(
+    HealthDataType<HealthRecord, MeasurementUnit>? value,
+  ) {
+    setState(() {
+      _selectedDataType = value;
+      _selectedBloodPressureSubtype = null;
+
+      if (value is BloodPressureDataType) {
+        _selectedMetric = null;
+      } else {
+        _selectedMetric = value?.supportedAggregationMetrics.first;
+      }
+
+      final notifier = Provider.of<AggregateDataChangeNotifier>(
+        context,
+        listen: false,
+      );
+      notifier.clearResults();
+    });
+  }
+
+  
+  void _onBloodPressureSubtypeChanged(
+    HealthDataType<HealthRecord, Pressure>? value,
+  ) {
+    setState(() {
+      _selectedBloodPressureSubtype = value;
+      _selectedMetric = value?.supportedAggregationMetrics.first;
+
+      final notifier = Provider.of<AggregateDataChangeNotifier>(
+        context,
+        listen: false,
+      );
+      notifier.clearResults();
+    });
+  }
+
+  
+  void _onAggregationMetricChanged(AggregationMetric? value) {
+    setState(() {
+      _selectedMetric = value ?? AggregationMetric.sum;
+
+      final notifier = Provider.of<AggregateDataChangeNotifier>(
+        context,
+        listen: false,
+      );
+      notifier.clearResults();
+    });
+  }
+
+  String? _validateDataType(
+    HealthDataType<HealthRecord, MeasurementUnit>? value,
+  ) {
+    if (value == null) {
+      return AppTexts.pleaseSelectDataType;
+    }
+    return null;
+  }
+
+  bool _filterSupportedDataTypes(
+    HealthDataType<HealthRecord, MeasurementUnit> type,
+  ) {
+    return type.supportedHealthPlatforms.contains(widget.healthPlatform) &&
+        type.supportedAggregationMetrics.isNotEmpty;
+  }
+
+  String? _validateBloodPressureType(
+    HealthDataType<HealthRecord, Pressure>? value,
+  ) {
+    if (_selectedDataType is BloodPressureDataType && value == null) {
+      return AppTexts.pleaseSelectBloodPressureType;
+    }
+    return null;
+  }
+
+  String? _validateAggregationMetric(AggregationMetric? value) {
+    if (value == null) {
+      return AppTexts.pleaseSelectMetric;
+    }
+    return null;
+  }
+
+  void _onPresetSelected(
+    DateTime startDate,
+    TimeOfDay startTime,
+    DateTime endDate,
+    TimeOfDay endTime,
+  ) {
+    setStartDate(startDate);
+    setStartTime(startTime);
+    setEndDate(endDate);
+    setEndTime(endTime);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Selector<AggregateDataChangeNotifier, bool>(
+      selector: (_, notifier) => notifier.isLoading,
+      builder: (context, isLoading, _) {
+        return LoadingOverlay(
+          isLoading: isLoading,
+          child: Scaffold(
+            appBar: AppBar(title: const Text(AppTexts.readAggregateData)),
+            body: Column(
+              children: [
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.all(20.0),
+                    child: Form(
+                      key: _formKey,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          HealthDataTypeDropdownField(
+                            initialValue: _selectedDataType,
+                            onChanged: _onDataTypeChanged,
+                            validator: _validateDataType,
+                            itemsFilter: _filterSupportedDataTypes,
+                          ),
+                          const SizedBox(height: 12),
+                          if (_selectedDataType is BloodPressureDataType) ...[
+                            DropdownButtonFormField<
+                              HealthDataType<HealthRecord, Pressure>
+                            >(
+                              initialValue: _selectedBloodPressureSubtype,
+                              decoration: const InputDecoration(
+                                labelText: AppTexts.bloodPressureType,
+                                border: OutlineInputBorder(),
+                                prefixIcon: Icon(
+                                  AppIcons.bloodPressure,
+                                ),
+                              ),
+                              items: [
+                                DropdownMenuItem<
+                                  HealthDataType<HealthRecord, Pressure>
+                                >(
+                                  value: HealthDataType.systolicBloodPressure,
+                                  child: Text(
+                                    HealthDataType
+                                        .systolicBloodPressure
+                                        .displayName,
+                                  ),
+                                ),
+                                DropdownMenuItem<
+                                  HealthDataType<HealthRecord, Pressure>
+                                >(
+                                  value: HealthDataType.diastolicBloodPressure,
+                                  child: Text(
+                                    HealthDataType
+                                        .diastolicBloodPressure
+                                        .displayName,
+                                  ),
+                                ),
+                              ],
+                              onChanged: _onBloodPressureSubtypeChanged,
+                              validator: _validateBloodPressureType,
+                            ),
+                            const SizedBox(height: 12),
+                          ],
+                          DropdownButtonFormField<AggregationMetric>(
+                            initialValue: _selectedMetric,
+                            decoration: const InputDecoration(
+                              labelText: AppTexts.aggregationMetric,
+                              border: OutlineInputBorder(),
+                              prefixIcon: Icon(AppIcons.calculate),
+                            ),
+                            items:
+                                (_selectedDataType is BloodPressureDataType
+                                        ? _selectedBloodPressureSubtype
+                                              ?.supportedAggregationMetrics
+                                        : _selectedDataType
+                                              ?.supportedAggregationMetrics)
+                                    ?.map(
+                                      (metric) {
+                                        return DropdownMenuItem(
+                                          value: metric,
+                                          child: Text(metric.displayName),
+                                        );
+                                      },
+                                    )
+                                    .toList(),
+                            onChanged: _onAggregationMetricChanged,
+                            validator: _validateAggregationMetric,
+                          ),
+                          const SizedBox(height: 16),
+                          DateRangePresets(
+                            onPresetSelected: _onPresetSelected,
+                          ),
+                          const SizedBox(height: 12),
+                          DateTimeRangePickerColumn(
+                            startDate: startDate,
+                            startTime: startTime,
+                            endDate: endDate,
+                            endTime: endTime,
+                            onStartDateChanged: setStartDate,
+                            onStartTimeChanged: setStartTime,
+                            onEndDateChanged: setEndDate,
+                            onEndTimeChanged: setEndTime,
+                          ),
+                          Selector<
+                            AggregateDataChangeNotifier,
+                            MeasurementUnit?
+                          >(
+                            selector: (_, notifier) =>
+                                notifier.aggregationResult,
+                            builder: (context, aggregationResult, _) {
+                              if (aggregationResult != null &&
+                                  _selectedMetric != null) {
+                                return AggregateResultCard(
+                                  metric: _selectedMetric!.displayName,
+                                  aggregationMetric: _selectedMetric!,
+                                  value: aggregationResult,
+                                  startDateTime: startDateTime,
+                                  endDateTime: endDateTime,
+                                );
+                              }
+                              return const SizedBox.shrink();
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                ElevatedGradientButton(
+                  onPressed: isLoading ? null : _aggregate,
+                  label: AppTexts.aggregate.toUpperCase(),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+}

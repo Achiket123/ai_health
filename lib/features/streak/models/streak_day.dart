@@ -20,7 +20,7 @@ class StreakDay extends Equatable {
     this.dayStreak = 0,
   });
 
-  /// Create a copy with modifications
+  
   StreakDay copyWith({
     DateTime? date,
     List<String>? photoPaths,
@@ -35,22 +35,22 @@ class StreakDay extends Equatable {
     );
   }
 
-  /// Check if this day has any photos
+  
   bool get hasPhotos => photoPaths.isNotEmpty;
 
-  /// Add a photo to this day
+  
   StreakDay addPhoto(String photoPath) {
     final newPhotos = [...photoPaths, photoPath];
     return copyWith(photoPaths: newPhotos);
   }
 
-  /// Remove a photo from this day
+  
   StreakDay removePhoto(String photoPath) {
     final newPhotos = photoPaths.where((p) => p != photoPath).toList();
     return copyWith(photoPaths: newPhotos);
   }
 
-  /// Convert to JSON
+  
   Map<String, dynamic> toJson() {
     return {
       'date': date.toIso8601String(),
@@ -60,7 +60,7 @@ class StreakDay extends Equatable {
     };
   }
 
-  /// Create from JSON
+  
   factory StreakDay.fromJson(Map<String, dynamic> json) {
     return StreakDay(
       date: DateTime.parse(json['date'] as String),

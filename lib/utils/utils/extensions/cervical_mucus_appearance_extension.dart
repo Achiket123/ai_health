@@ -2,9 +2,9 @@ import 'package:health_connector/health_connector_internal.dart'
     show CervicalMucusAppearance;
 import 'package:ai_health/utils/constants/app_texts.dart';
 
-/// Extension methods for [CervicalMucusAppearance] to provide UI support.
+
 extension CervicalMucusAppearanceExtension on CervicalMucusAppearance {
-  /// Returns a user-friendly display name for this appearance value.
+  
   String get displayName {
     return switch (this) {
       CervicalMucusAppearance.unknown => AppTexts.unknown,

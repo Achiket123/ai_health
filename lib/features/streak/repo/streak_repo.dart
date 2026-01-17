@@ -8,7 +8,7 @@ import 'package:image_picker/image_picker.dart';
 class StreakRepository {
   static const String _streakBoxName = 'streak_box';
 
-  /// Initialize the repository
+  
   Future<StreakData> getStreakData(String userId) async {
     final key = 'streak_$userId';
     final box = Hive.box(_streakBoxName);
@@ -40,9 +40,9 @@ class StreakRepository {
     return StreakData.fromJson(data);
   }
 
-  /// Get or create streak data for a user
+  
 
-  /// Save a streak day
+  
   Future<void> saveStreakDay(String userId, StreakDay day) async {
     final streakData = await getStreakData(userId);
     final updated = streakData.updateDay(day);
@@ -59,7 +59,7 @@ class StreakRepository {
     await _box.put('streak_$userId', finalData.toJson());
   }
 
-  /// Add a photo to a specific day
+  
   Future<void> addPhotoToDay(
     String userId,
     DateTime date,
@@ -89,7 +89,7 @@ class StreakRepository {
     await saveStreakDay(userId, finalDay);
   }
 
-  /// Remove a photo from a day
+  
   Future<void> removePhotoFromDay(
     String userId,
     DateTime date,
@@ -114,7 +114,7 @@ class StreakRepository {
     }
   }
 
-  /// Get a month's streak data
+  
   Future<Map<String, StreakDay>> getMonthData(
     String userId,
     DateTime month,
@@ -132,20 +132,20 @@ class StreakRepository {
     );
   }
 
-  /// Get all photos for a specific day
+  
   Future<List<String>> getPhotosForDay(String userId, DateTime date) async {
     final streakData = await getStreakData(userId);
     final day = streakData.getDay(date);
     return day?.photoPaths ?? [];
   }
 
-  /// Delete all streak data for a user (for testing/reset)
+  
   Future<void> deleteUserStreakData(String userId) async {
     final _box = await Hive.box(_streakBoxName);
     await _box.delete('streak_$userId');
   }
 
-  /// Clear all local photo files for a user
+  
   Future<void> clearLocalPhotos(String userId) async {
     try {
       final appDir = await getApplicationDocumentsDirectory();
@@ -159,7 +159,7 @@ class StreakRepository {
     }
   }
 
-  /// Save a photo locally and return the path
+  
   Future<String> savePhotoLocally(String userId, String sourcePhotoPath) async {
     try {
       final appDir = await getApplicationDocumentsDirectory();
@@ -183,7 +183,7 @@ class StreakRepository {
     }
   }
 
-  /// Get file extension from path
+  
   String _getFileExtension(String path) {
     final lastDot = path.lastIndexOf('.');
     if (lastDot != -1) {

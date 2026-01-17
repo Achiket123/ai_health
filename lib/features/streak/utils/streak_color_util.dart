@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:ai_health/features/streak/models/streak_day.dart';
 
 class StreakColorUtil {
-  /// Get color based on streak status and day streak count
+  
   static Color getStreakColor(StreakStatus status, int dayStreak) {
     switch (status) {
       case StreakStatus.none:
@@ -20,7 +20,7 @@ class StreakColorUtil {
     }
   }
 
-  /// Get streak status text
+  
   static String getStatusText(StreakStatus status) {
     switch (status) {
       case StreakStatus.none:
@@ -34,7 +34,7 @@ class StreakColorUtil {
     }
   }
 
-  /// Get border color based on streak status
+  
   static Color getStreakBorderColor(StreakStatus status) {
     switch (status) {
       case StreakStatus.none:
@@ -48,7 +48,7 @@ class StreakColorUtil {
     }
   }
 
-  /// Get text color based on streak status
+  
   static Color getStreakTextColor(StreakStatus status) {
     switch (status) {
       case StreakStatus.none:

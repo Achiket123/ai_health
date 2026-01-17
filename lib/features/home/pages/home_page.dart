@@ -30,6 +30,10 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'dart:developer' as developer;
 import 'package:syncfusion_flutter_charts/charts.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
+import 'package:ai_health/features/home/providers/dashboard_provider.dart';
+import 'package:ai_health/src/features/read_health_records/pages/read_health_records_page.dart';
+import 'package:ai_health/src/features/read_health_records/read_health_records_change_notifier.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -41,130 +45,16 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   late ProfileService _profileService;
   late PermissionsService _permissionsService;
-  late StepRepository _stepRepository;
-  late SleepRepository _sleepRepository;
-  late VitalsRepository _vitalsRepository;
-  late HydrationRepository _hydrationRepository;
-  late WorkoutRepository _workoutRepository;
-  late NutritionRepository _nutritionRepository;
-  late MeditationRepository _meditationRepository;
-
-  List<DailySteps> _weeklySteps = [];
-  List<DailySleep> _weeklySleep = [];
-  List<VitalData> _weeklyVitals = [];
-  List<DailyHydration> _weeklyHydration = [];
-  List<DailyWorkout> _weeklyWorkouts = [];
-  List<DailyCalories> _weeklyCalories = [];
-  List<Map<String, dynamic>> _meditationHistory = [];
-
-  bool _isLoadingDashboard = true;
 
   @override
   void initState() {
     super.initState();
     _profileService = ProfileService(supabaseClient: Supabase.instance.client);
     _permissionsService = PermissionsService(healthConnector: healthConnector);
-    _stepRepository = StepRepository(healthConnector: healthConnector);
-    _sleepRepository = SleepRepository(healthConnector: healthConnector);
-    _vitalsRepository = VitalsRepository(healthConnector: healthConnector);
-    _hydrationRepository = HydrationRepository(
-      healthConnector: healthConnector,
-    );
-    _workoutRepository = WorkoutRepository(healthConnector: healthConnector);
-    _nutritionRepository = NutritionRepository(healthConnector: healthConnector);
-    _meditationRepository = MeditationRepository(healthConnector: healthConnector);
 
     _checkProfileCompletion();
-    _loadDashboardData();
   }
 
-  Future<void> _loadDashboardData() async {
-    // Helper to safely fetch data or return a default value
-    Future<T> safeFetch<T>(Future<T> future, T defaultValue) async {
-      try {
-        return await future;
-      } catch (e) {
-        print("Error fetching dashboard data part: $e", );
-        return defaultValue;
-      }
-    }
-
-    try {
-      // Fetch data for the last 7 days independently but in parallel
-      final stepsFuture = safeFetch<List<DailySteps>>(
-        _stepRepository.getDailySteps(7),
-        [],
-      );
-      final sleepFuture = safeFetch<List<DailySleep>>(
-        _sleepRepository.getDailySleepDuration(7),
-        [],
-      );
-      final vitalsFuture = safeFetch<List<VitalData>>(
-        _vitalsRepository.getVitalsHistory(),
-        [],
-      );
-      final hydrationFuture = safeFetch<List<DailyHydration>>(
-        _hydrationRepository.getHydrationHistory(7),
-        [],
-      );
-      final workoutFuture = safeFetch<List<DailyWorkout>>(
-        _workoutRepository.getDailyWorkoutDuration(7),
-        [],
-      );
-      final nutritionFuture = safeFetch<List<DailyCalories>>(
-        _nutritionRepository.getDailyCalories(7),
-        [],
-      );
-      final meditationFuture = safeFetch<List<Map<String, dynamic>>>(
-        _meditationRepository.getMeditationHistory(),
-        [],
-      );
-
-      final results = await Future.wait([
-        stepsFuture,
-        sleepFuture,
-        vitalsFuture,
-        hydrationFuture,
-        workoutFuture,
-        nutritionFuture,
-        meditationFuture,
-      ]);
-
-      if (mounted) {
-        setState(() {
-          _weeklySteps = results[0] as List<DailySteps>;
-          _weeklySleep = results[1] as List<DailySleep>;
-          _weeklyHydration = results[3] as List<DailyHydration>;
-          _weeklyWorkouts = results[4] as List<DailyWorkout>;
-          _weeklyCalories = results[5] as List<DailyCalories>;
-          _meditationHistory = results[6] as List<Map<String, dynamic>>;
-
-          final cutoff = DateTime.now().subtract(const Duration(days: 7));
-
-          // Vitals: Filter out HR-only records if they mess up the Stress chart (which expects stressLevel > 0 usually)
-          // Or we trust the chart handles 0s.
-          // Let's filter to ensure valid stress data for the chart, OR just filter by date.
-          // If we show a "Stress" chart, we probably only want records with Stress.
-          // VitalData has stressLevel default 0 if from HC (HR only).
-          // We'll keep them but might need to be careful.
-          // For now, standard filtering.
-          final vitals = results[2] as List<VitalData>;
-          _weeklyVitals =
-              vitals.where((v) => v.date.isAfter(cutoff)).toList()
-                ..sort((a, b) => a.date.compareTo(b.date));
-
-          _isLoadingDashboard = false;
-        });
-      }
-    } catch (e) {
-      print("Error loading dashboard: $e");
-      if (mounted) setState(() => _isLoadingDashboard = false);
-    } finally {
-      if (mounted && _isLoadingDashboard) {
-        setState(() => _isLoadingDashboard = false);
-      }
-    }
-  }
 
   Future<void> _checkProfileCompletion() async {
     try {
@@ -180,7 +70,7 @@ class _HomePageState extends State<HomePage> {
         _checkPermissionsCompletion();
       }
     } catch (e) {
-      print('Error checking profile: $e', );
+      print('Error checking profile: $e');
     }
   }
 
@@ -197,7 +87,7 @@ class _HomePageState extends State<HomePage> {
         );
       }
     } catch (e) {
-      print('Error checking permissions: $e', );
+      print('Error checking permissions: $e');
     }
   }
 
@@ -209,11 +99,19 @@ class _HomePageState extends State<HomePage> {
     final now = DateTime.now();
     final dateString = DateFormat('EEEE, d MMMM').format(now);
 
-    return Scaffold(
-      backgroundColor: Colors.grey[50], // Lighter background
-      body: _isLoadingDashboard
-          ? const Center(child: CircularProgressIndicator())
-          : SafeArea(
+    return ChangeNotifierProvider(
+      create: (_) => DashboardProvider(healthConnector)..loadDashboardData(),
+      child: Consumer<DashboardProvider>(
+        builder: (context, provider, child) {
+          if (provider.isLoading) {
+            return const Scaffold(
+              body: Center(child: CircularProgressIndicator()),
+            );
+          }
+          
+          return Scaffold(
+            backgroundColor: Colors.grey[50],
+            body: SafeArea(
               child: CustomScrollView(
                 slivers: [
                   SliverToBoxAdapter(
@@ -280,42 +178,42 @@ class _HomePageState extends State<HomePage> {
                         children: [
                           _buildSummaryCard(
                             title: "Steps",
-                            value: _getTodaySteps().toString(),
+                            value: _getTodaySteps(provider.weeklySteps).toString(),
                             unit: "steps",
                             icon: Icons.directions_walk,
                             color: Colors.orangeAccent,
                           ),
                           _buildSummaryCard(
                             title: "Sleep",
-                            value: _getTodaySleep(),
+                            value: _getTodaySleep(provider.weeklySleep),
                             unit: "hrs",
                             icon: Icons.bedtime,
                             color: Colors.indigoAccent,
                           ),
                           _buildSummaryCard(
                             title: "Water",
-                            value: "${_getTodayWater()}ml",
+                            value: "${_getTodayWater(provider.weeklyHydration)}ml",
                             unit: "today",
                             icon: Icons.water_drop,
                             color: Colors.blueAccent,
                           ),
                           _buildSummaryCard(
                             title: "Active",
-                            value: "${_getTodayWorkoutMins()}m",
+                            value: "${_getTodayWorkoutMins(provider.weeklyWorkouts)}m",
                             unit: "today",
                             icon: Icons.fitness_center,
                             color: Colors.teal,
                           ),
                           _buildSummaryCard(
                             title: "Calories",
-                            value: _getTodayCalories(),
+                            value: _getTodayCalories(provider.weeklyCalories),
                             unit: "kcal",
                             icon: Icons.local_fire_department,
                             color: Colors.redAccent,
                           ),
                           _buildSummaryCard(
                             title: "Meditate",
-                            value: "${_getTodayMeditationMins()}m",
+                            value: "${_getTodayMeditationMins(provider.meditationHistory)}m",
                             unit: "today",
                             icon: Icons.self_improvement,
                             color: Colors.purple,
@@ -377,7 +275,7 @@ class _HomePageState extends State<HomePage> {
                               ),
                               series: [
                                 ColumnSeries<DailySteps, DateTime>(
-                                  dataSource: _weeklySteps,
+                                  dataSource: provider.weeklySteps,
                                   xValueMapper: (DailySteps data, _) =>
                                       data.date,
                                   yValueMapper: (DailySteps data, _) =>
@@ -444,8 +342,7 @@ class _HomePageState extends State<HomePage> {
                                 ),
                                 axisLine: const AxisLine(width: 0),
                                 minimum: 0,
-                                maximum:
-                                    12, // Adjusted for sleep hours or stress level
+                                maximum: 12,
                                 labelStyle: TextStyle(color: Colors.grey[600]),
                               ),
                               legend: Legend(
@@ -454,7 +351,7 @@ class _HomePageState extends State<HomePage> {
                               ),
                               series: [
                                 SplineAreaSeries<DailySleep, DateTime>(
-                                  dataSource: _weeklySleep,
+                                  dataSource: provider.weeklySleep,
                                   xValueMapper: (DailySleep data, _) =>
                                       data.date,
                                   yValueMapper: (DailySleep data, _) =>
@@ -465,7 +362,7 @@ class _HomePageState extends State<HomePage> {
                                   borderWidth: 2,
                                 ),
                                 LineSeries<VitalData, DateTime>(
-                                  dataSource: _weeklyVitals,
+                                  dataSource: provider.weeklyVitals,
                                   xValueMapper: (VitalData data, _) =>
                                       data.date,
                                   yValueMapper: (VitalData data, _) =>
@@ -503,6 +400,16 @@ class _HomePageState extends State<HomePage> {
                             ),
                           ),
                           const SizedBox(height: 16),
+                          _buildFeatureTile(
+                            context,
+                            "All Health Records",
+                            Icons.list_alt,
+                            Colors.blueGrey,
+                            ChangeNotifierProvider(
+                              create: (_) => ReadHealthRecordsChangeNotifier(healthConnector),
+                              child: ReadHealthRecordsPage(healthPlatform: healthConnector.healthPlatform),
+                            ),
+                          ),
                           _buildFeatureTile(
                             context,
                             "Steps",
@@ -604,67 +511,70 @@ class _HomePageState extends State<HomePage> {
                 ],
               ),
             ),
+          );
+        },
+      ),
     );
   }
 
-  int _getTodaySteps() {
-    if (_weeklySteps.isEmpty) return 0;
+  int _getTodaySteps(List<DailySteps> weeklySteps) {
+    if (weeklySteps.isEmpty) return 0;
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
-    final todaySteps = _weeklySteps.firstWhereOrNull(
-      (s) => DateTime(s.date.year, s.date.month, s.date.day) == today,
+    final todaySteps = weeklySteps.firstWhereOrNull(
+      (s) => DateTime(s.date.year, s.date.month, s.date.day+1) == today,
     );
     return todaySteps?.count ?? 0;
   }
 
-  String _getTodaySleep() {
-    if (_weeklySleep.isEmpty) return "0";
+  String _getTodaySleep(List<DailySleep> weeklySleep) {
+    if (weeklySleep.isEmpty) return "0";
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
 
-    final todaySleep = _weeklySleep.firstWhereOrNull((s) {
-       return DateTime(s.date.year, s.date.month, s.date.day) == today;
+    final todaySleep = weeklySleep.firstWhereOrNull((s) {
+      return DateTime(s.date.year, s.date.month, s.date.day) == today;
     });
 
     return todaySleep?.durationHours.toStringAsFixed(1) ?? "0";
   }
 
-  int _getTodayWater() {
-    if (_weeklyHydration.isEmpty) return 0;
+  int _getTodayWater(List<DailyHydration> weeklyHydration) {
+    if (weeklyHydration.isEmpty) return 0;
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
-    final todayHydration = _weeklyHydration.firstWhereOrNull(
+    final todayHydration = weeklyHydration.firstWhereOrNull(
       (h) => DateTime(h.date.year, h.date.month, h.date.day) == today,
     );
     return todayHydration?.volumeMl ?? 0;
   }
 
-  int _getTodayWorkoutMins() {
-    if (_weeklyWorkouts.isEmpty) return 0;
+  int _getTodayWorkoutMins(List<DailyWorkout> weeklyWorkouts) {
+    if (weeklyWorkouts.isEmpty) return 0;
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
-    final todayWorkout = _weeklyWorkouts.firstWhereOrNull(
+    final todayWorkout = weeklyWorkouts.firstWhereOrNull(
       (w) => DateTime(w.date.year, w.date.month, w.date.day) == today,
     );
     return todayWorkout?.durationMinutes ?? 0;
   }
 
-  String _getTodayCalories() {
-    if (_weeklyCalories.isEmpty) return "0";
+  String _getTodayCalories(List<DailyCalories> weeklyCalories) {
+    if (weeklyCalories.isEmpty) return "0";
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
-    final todayCals = _weeklyCalories.firstWhereOrNull(
+    final todayCals = weeklyCalories.firstWhereOrNull(
       (c) => DateTime(c.date.year, c.date.month, c.date.day) == today,
     );
     return todayCals?.calories.toInt().toString() ?? "0";
   }
 
-  int _getTodayMeditationMins() {
-    if (_meditationHistory.isEmpty) return 0;
+  int _getTodayMeditationMins(List<Map<String, dynamic>> meditationHistory) {
+    if (meditationHistory.isEmpty) return 0;
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
 
-    return _meditationHistory
+    return meditationHistory
         .where((m) {
           final date = m['startTime'] as DateTime;
           return DateTime(date.year, date.month, date.day) == today;

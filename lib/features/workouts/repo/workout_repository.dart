@@ -93,7 +93,7 @@ class WorkoutRepository {
         );
       }).toList();
     } catch (e) {
-      print('Error fetching workout history: $e', );
+      print('Error fetching workout history: $e');
       return [];
     }
   }
@@ -112,7 +112,9 @@ class WorkoutRepository {
         ),
       );
 
-      final records = response.records.whereType<ExerciseSessionRecord>().toList();
+      final records = response.records
+          .whereType<ExerciseSessionRecord>()
+          .toList();
 
       final grouped = groupBy(records, (ExerciseSessionRecord record) {
         return DateTime(
@@ -133,18 +135,32 @@ class WorkoutRepository {
 
         if (dayRecords != null) {
           for (var record in dayRecords) {
-            totalMinutes += record.endTime.difference(record.startTime).inMinutes;
+            totalMinutes += record.endTime
+                .difference(record.startTime)
+                .inMinutes;
           }
         }
 
-        dailyWorkouts.add(DailyWorkout(date: dayStart, durationMinutes: totalMinutes));
+        dailyWorkouts.add(
+          DailyWorkout(date: dayStart, durationMinutes: totalMinutes),
+        );
       }
 
       dailyWorkouts.sort((a, b) => a.date.compareTo(b.date));
 
       return dailyWorkouts;
+    } on HealthConnectorException catch (e) {
+      print('Could not fetch daily workouts from Health Connect: $e. Returning 0s.');
+      List<DailyWorkout> dailyWorkouts = [];
+      for (int i = 0; i < days; i++) {
+        final date = now.subtract(Duration(days: i));
+        final dayStart = DateTime(date.year, date.month, date.day);
+        dailyWorkouts.add(DailyWorkout(date: dayStart, durationMinutes: 0));
+      }
+      dailyWorkouts.sort((a, b) => a.date.compareTo(b.date));
+      return dailyWorkouts;
     } catch (e) {
-      print('Error fetching daily workouts: $e');
+      print('Unexpected error fetching daily workouts: $e. Returning 0s.');
       List<DailyWorkout> dailyWorkouts = [];
       for (int i = 0; i < days; i++) {
         final date = now.subtract(Duration(days: i));

@@ -6,7 +6,7 @@ import 'package:ai_health/utils/constants/app_texts.dart';
 import 'package:ai_health/utils/utils/extensions/display_name_extensions.dart';
 import 'package:ai_health/utils/widgets/searchable_dropdown_menu_form_field.dart';
 
-/// A reusable dropdown field for selecting a health data type.
+
 @immutable
 final class HealthDataTypeDropdownField extends StatelessWidget {
   const HealthDataTypeDropdownField({

@@ -5,10 +5,10 @@ import 'package:flutter/material.dart';
 import 'package:ai_health/utils/utils/date_formatter.dart';
 import 'package:ai_health/utils/widgets/pickers/base_picker_field.dart';
 
-/// A form field widget for selecting a date (without time).
-///
-/// Displays a read-only text field that opens a date picker when tapped.
-/// The selected date is formatted and displayed in the field.
+
+
+
+
 @immutable
 final class DatePickerField extends BasePickerField<DateTime> {
   const DatePickerField({
@@ -21,10 +21,10 @@ final class DatePickerField extends BasePickerField<DateTime> {
     this.lastDate,
   }) : super(icon: AppIcons.calendarToday);
 
-  /// The earliest date the user can select.
+  
   final DateTime? firstDate;
 
-  /// The latest date the user can select.
+  
   final DateTime? lastDate;
 
   @override

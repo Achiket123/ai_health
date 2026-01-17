@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:ai_health/utils/constants/app_icons.dart';
 import 'package:ai_health/utils/constants/app_texts.dart';
 
-/// A reusable search text field widget with consistent styling.
-///
-/// Displays a text field with a search icon prefix, clear button suffix,
-/// and rounded borders. Used for filtering lists throughout the app.
+
+
+
+
 @immutable
 final class SearchTextField extends StatefulWidget {
   const SearchTextField({
@@ -14,10 +14,10 @@ final class SearchTextField extends StatefulWidget {
     super.key,
   });
 
-  /// Callback invoked when the text changes.
+  
   final ValueChanged<String> onChanged;
 
-  /// Hint text displayed when the field is empty.
+  
   final String hintText;
 
   @override

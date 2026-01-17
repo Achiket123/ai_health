@@ -3,12 +3,12 @@ import 'package:ai_health/utils/constants/app_texts.dart';
 import 'package:ai_health/utils/utils/date_formatter.dart';
 import 'package:ai_health/utils/widgets/pickers/date_time_picker_row.dart';
 
-/// A reusable widget that displays start and end date/time picker fields
-/// in rows with built-in validation for date/time range selection.
-///
-/// This widget provides validation to ensure:
-/// - Both start and end date/time are selected
-/// - End date/time is after start date/time
+
+
+
+
+
+
 @immutable
 final class DateTimeRangePickerColumn extends StatelessWidget {
   const DateTimeRangePickerColumn({
@@ -29,52 +29,52 @@ final class DateTimeRangePickerColumn extends StatelessWidget {
     this.rowSpacing = 16.0,
   });
 
-  /// The selected start date (without time).
+  
   final DateTime? startDate;
 
-  /// The selected start time (without date).
+  
   final TimeOfDay? startTime;
 
-  /// The selected end date (without time).
+  
   final DateTime? endDate;
 
-  /// The selected end time (without date).
+  
   final TimeOfDay? endTime;
 
-  /// Callback when the start date is changed.
+  
   final ValueChanged<DateTime> onStartDateChanged;
 
-  /// Callback when the start time is changed.
+  
   final ValueChanged<TimeOfDay> onStartTimeChanged;
 
-  /// Callback when the end date is changed.
+  
   final ValueChanged<DateTime> onEndDateChanged;
 
-  /// Callback when the end time is changed.
+  
   final ValueChanged<TimeOfDay> onEndTimeChanged;
 
-  /// Optional label for the start date field. Defaults to [AppTexts.startDate].
+  
   final String? startDateLabel;
 
-  /// Optional label for the start time field. Defaults to [AppTexts.startTime].
+  
   final String? startTimeLabel;
 
-  /// Optional label for the end date field. Defaults to [AppTexts.endDate].
+  
   final String? endDateLabel;
 
-  /// Optional label for the end time field. Defaults to [AppTexts.endTime].
+  
   final String? endTimeLabel;
 
-  /// Spacing between date and time fields within a row. Defaults to 8.0.
+  
   final double fieldSpacing;
 
-  /// Spacing between the start and end rows. Defaults to 16.0.
+  
   final double rowSpacing;
 
-  /// Computes the combined start date and time as a DateTime object.
+  
   DateTime? get _startDateTime => DateFormatter.combine(startDate, startTime);
 
-  /// Computes the combined end date and time as a DateTime object.
+  
   DateTime? get _endDateTime => DateFormatter.combine(endDate, endTime);
 
   String? _validateStartDateTime() {

@@ -3,11 +3,11 @@ import 'package:health_connector/health_connector_internal.dart';
 import 'package:ai_health/utils/constants/app_icons.dart';
 import 'package:ai_health/utils/constants/app_texts.dart';
 
-/// Extension on [HealthDataType] to provide UI-related properties.
+
 extension HealthDataTypeUI on HealthDataType {
-  /// Returns the display name for this health data type.
-  ///
-  /// This name should be used in UI elements.
+  
+  
+  
   String get displayName {
     return switch (this) {
       StepsDataType _ => AppTexts.steps,
@@ -108,10 +108,10 @@ extension HealthDataTypeUI on HealthDataType {
     };
   }
 
-  /// Returns a description for this health data type.
-  ///
-  /// This description provides additional context about what the data type
-  /// represents and is suitable for subtitle text or tooltips.
+  
+  
+  
+  
   String get description {
     return switch (this) {
       StepsDataType _ => AppTexts.stepsDescription,
@@ -223,10 +223,10 @@ extension HealthDataTypeUI on HealthDataType {
     };
   }
 
-  /// Returns the icon for this health data type.
-  ///
-  /// This icon should be used consistently across the app to represent
-  /// the health data type in UI elements.
+  
+  
+  
+  
   IconData get icon {
     return switch (this) {
       StepsDataType _ => AppIcons.directionsWalk,
@@ -327,13 +327,13 @@ extension HealthDataTypeUI on HealthDataType {
   }
 }
 
-/// Extension on [HealthDataType] to provide form-related properties and logic.
-///
-/// This extension provides UI configuration, parsing logic, and validation
-/// for health data input fields, replacing the previous ConfigCategory,
-/// ConfigMetadata, and ConfigFactory pattern.
+
+
+
+
+
 extension HealthDataTypeUIFormExtension on HealthDataType {
-  /// Returns the appropriate keyboard type for this data type.
+  
   TextInputType get keyboardType {
     return switch (runtimeType) {
       // Integer types
@@ -348,7 +348,7 @@ extension HealthDataTypeUIFormExtension on HealthDataType {
     };
   }
 
-  /// Returns the label text for the input field.
+  
   String get fieldLabel {
     return switch (runtimeType) {
       // Count Types
@@ -665,7 +665,7 @@ extension HealthDataTypeUIFormExtension on HealthDataType {
     };
   }
 
-  /// Returns the optional suffix text for the input field.
+  
   String? get fieldSuffix {
     return switch (runtimeType) {
       // Mass types (kilograms)
@@ -759,7 +759,7 @@ extension HealthDataTypeUIFormExtension on HealthDataType {
     };
   }
 
-  /// Returns the error message when the input is empty.
+  
   String get emptyInputError {
     return switch (runtimeType) {
       const (StepsDataType) ||

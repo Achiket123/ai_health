@@ -2,9 +2,9 @@ import 'package:health_connector/health_connector_internal.dart'
     show SleepStage;
 import 'package:ai_health/utils/constants/app_texts.dart';
 
-/// Extension providing display names for [SleepStage] enum values.
+
 extension SleepStageTypeDisplayName on SleepStage {
-  /// Returns the localized display name for this sleep stage type.
+  
   String get displayName {
     return switch (this) {
       SleepStage.unknown => AppTexts.unknown,

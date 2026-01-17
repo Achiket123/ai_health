@@ -17,11 +17,11 @@ import 'package:health_connector/health_connector_internal.dart'
         Volume;
 import 'package:ai_health/utils/constants/app_texts.dart';
 
-/// A reusable widget for displaying measurement units with all available
-/// unit conversions.
-///
-/// Displays the primary unit in bold with primary color, and all secondary
-/// units in grey below it.
+
+
+
+
+
 @immutable
 final class MeasurementUnitDisplay extends StatelessWidget {
   const MeasurementUnitDisplay({
@@ -29,7 +29,7 @@ final class MeasurementUnitDisplay extends StatelessWidget {
     super.key,
   });
 
-  /// The measurement unit to display.
+  
   final MeasurementUnit unit;
 
   @override
@@ -190,21 +190,21 @@ final class MeasurementUnitDisplay extends StatelessWidget {
   }
 }
 
-/// Helper widget for displaying a measurement unit with primary and
-/// secondary values.
-///
-/// Displays the primary value in bold with primary color, and secondary values
-/// in grey text below it with consistent spacing.
+
+
+
+
+
 class _UnitDisplay extends StatelessWidget {
   const _UnitDisplay({
     required this.primaryValue,
     required this.secondaryValues,
   });
 
-  /// Primary measurement value to display (e.g., "5.00 kg").
+  
   final String primaryValue;
 
-  /// List of secondary values to display below the primary value.
+  
   final List<String> secondaryValues;
 
   @override

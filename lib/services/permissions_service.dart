@@ -6,8 +6,8 @@ class PermissionsService {
 
   PermissionsService({required this.healthConnector});
 
-  /// Check if all available permissions are granted
-  /// Returns true if all permissions are granted, false otherwise
+  
+  
   Future<bool> areAllPermissionsGranted() async {
     try {
       print(
@@ -70,8 +70,8 @@ class PermissionsService {
     }
   }
 
-  /// Get count of granted permissions
-  /// Returns a map with total and granted count
+  
+  
   Future<Map<String, int>> getPermissionStats() async {
     try {
       print(

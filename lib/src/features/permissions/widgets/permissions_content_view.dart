@@ -1,0 +1,217 @@
+import 'package:flutter/material.dart';
+import 'package:health_connector/health_connector_internal.dart'
+    show
+        HealthConnector,
+        HealthDataPermission,
+        HealthDataType,
+        HealthDataTypeCategory,
+        HealthPlatformFeature,
+        HealthPlatformFeatureStatus;
+import 'package:ai_health/src/common/constants/app_texts.dart';
+import 'package:ai_health/src/common/utils/extensions/display_name_extensions.dart';
+import 'package:ai_health/src/common/widgets/buttons/elevated_gradient_button.dart';
+import 'package:ai_health/src/common/widgets/health_data_category_list_view.dart';
+import 'package:ai_health/src/common/widgets/search_text_field.dart';
+import 'package:ai_health/src/features/permissions/permissions_change_notifier.dart';
+import 'package:ai_health/src/features/permissions/widgets/permission_list_tile.dart';
+import 'package:provider/provider.dart' show Provider, Selector;
+
+
+
+
+
+
+@immutable
+final class PermissionsContentView extends StatelessWidget {
+  const PermissionsContentView({
+    required this.notifier,
+    required this.searchQuery,
+    required this.onSearchChanged,
+    required this.onRequestPermissions,
+    super.key,
+  });
+
+  final PermissionsChangeNotifier notifier;
+  final String searchQuery;
+  final ValueChanged<String> onSearchChanged;
+  final VoidCallback onRequestPermissions;
+
+  @override
+  Widget build(BuildContext context) {
+    final healthConnector = Provider.of<HealthConnector>(context);
+
+    return Column(
+      children: [
+        Expanded(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(20.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Search field
+                SearchTextField(
+                  onChanged: onSearchChanged,
+                ),
+                const SizedBox(height: 24),
+
+                // Data Type Permissions Section
+                _buildSectionHeader(
+                  context,
+                  AppTexts.dataTypePermissions,
+                ),
+                const SizedBox(height: 16),
+                _buildDataTypePermissions(context, healthConnector),
+                const SizedBox(height: 32),
+
+                // Feature Permissions Section
+                _buildSectionHeader(
+                  context,
+                  AppTexts.featurePermissions,
+                ),
+                const SizedBox(height: 16),
+                ...HealthPlatformFeature.values.map(
+                  (feature) => PermissionListTile(
+                    title: Text(feature.displayName),
+                    isSelected: notifier.isPermissionSelected(
+                      feature.permission,
+                    ),
+                    permissionStatus: notifier.getPermissionStatus(
+                      feature.permission,
+                    ),
+                    isEnabled:
+                        notifier.featureStatuses[feature] ==
+                        HealthPlatformFeatureStatus.available,
+                    onChanged: (bool value) =>
+                        notifier.togglePermissionSelection(
+                          feature.permission,
+                          isSelected: value,
+                        ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+
+        // Enhanced Action Bar
+        _PermissionActionBar(
+          notifier: notifier,
+          onRequestPermissions: onRequestPermissions,
+        ),
+      ],
+    );
+  }
+
+  
+  Widget _buildSectionHeader(BuildContext context, String title) {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 4),
+      child: Text(
+        title,
+        style: theme.textTheme.titleMedium?.copyWith(
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+    );
+  }
+
+  
+  Widget _buildDataTypePermissions(
+    BuildContext context,
+    HealthConnector healthConnector,
+  ) {
+    // Get all permissions for the current platform
+    final allPermissions = HealthDataType.values
+        .expand(
+          (dataType) => dataType.permissions.whereType<HealthDataPermission>(),
+        )
+        .where(
+          (permission) => permission.supportedHealthPlatforms.contains(
+            healthConnector.healthPlatform,
+          ),
+        )
+        .toList();
+
+    // Group permissions by category
+    final permissionsByCategory =
+        <HealthDataTypeCategory, List<HealthDataPermission>>{};
+
+    for (final permission in allPermissions) {
+      if (searchQuery.isNotEmpty &&
+          !permission.displayName.toLowerCase().contains(
+            searchQuery.toLowerCase(),
+          )) {
+        continue;
+      }
+
+      final category = permission.dataType.category;
+      permissionsByCategory.putIfAbsent(category, () => []).add(permission);
+    }
+
+    if (permissionsByCategory.isEmpty) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Text(
+            AppTexts.noDataTypesFound,
+            style: Theme.of(context).textTheme.bodyLarge,
+          ),
+        ),
+      );
+    }
+
+    return HealthDataCategoryListView<HealthDataPermission>(
+      groupedItems: permissionsByCategory,
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemSorter: (a, b) => a.displayName.compareTo(b.displayName),
+      itemBuilder: (context, permission) {
+        return PermissionListTile(
+          title: Text(permission.displayName),
+          isSelected: notifier.isPermissionSelected(permission),
+          permissionStatus: notifier.getPermissionStatus(permission),
+          onChanged: (bool value) => notifier.togglePermissionSelection(
+            permission,
+            isSelected: value,
+          ),
+        );
+      },
+    );
+  }
+}
+
+
+
+
+
+final class _PermissionActionBar extends StatelessWidget {
+  const _PermissionActionBar({
+    required this.notifier,
+    required this.onRequestPermissions,
+  });
+
+  final PermissionsChangeNotifier notifier;
+  final VoidCallback onRequestPermissions;
+
+  @override
+  Widget build(BuildContext context) {
+    return Selector<PermissionsChangeNotifier, int>(
+      selector: (_, notifier) => notifier.selectedPermissions.length,
+      builder: (context, selectedCount, _) {
+        return ElevatedGradientButton(
+          onPressed: notifier.isLoading || selectedCount == 0
+              ? null
+              : onRequestPermissions,
+          label: _getButtonText(selectedCount),
+        );
+      },
+    );
+  }
+
+  String _getButtonText(int selectedCount) {
+    return selectedCount > 0
+        ? '${AppTexts.requestPermissions.toUpperCase()} ($selectedCount)'
+        : AppTexts.requestPermissions.toUpperCase();
+  }
+}

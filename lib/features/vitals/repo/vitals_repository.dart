@@ -2,13 +2,13 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:health_connector/health_connector.dart';
 import 'package:health_connector/health_connector_internal.dart';
 import '../models/vital_data.dart';
-import 'dart:developer' as developer;
 
 class VitalsRepository {
   static const String boxName = 'vitals_data_box';
   final HealthConnector? _healthConnector;
 
-  VitalsRepository({HealthConnector? healthConnector}) : _healthConnector = healthConnector;
+  VitalsRepository({HealthConnector? healthConnector})
+    : _healthConnector = healthConnector;
 
   Future<Box> _getBox() async {
     if (Hive.isBoxOpen(boxName)) {
@@ -33,7 +33,7 @@ class VitalsRepository {
       heartRate: null, // Don't store HR in Hive
       stressLevel: data.stressLevel,
       mood: data.mood,
-      notes: data.notes
+      notes: data.notes,
     );
 
     await box.put(key, hiveData.toMap());
@@ -42,15 +42,10 @@ class VitalsRepository {
     if (data.heartRate != null && _healthConnector != null) {
       try {
         final record = HeartRateRecord(
-          startTime: data.date,
-          endTime: data.date.add(const Duration(minutes: 1)), // Point in time
-          samples: [
-            HeartRateSample(
-              time: data.date,
-              beatsPerMinute: data.heartRate!.toDouble(),
-            ),
-          ],
+          id: HealthRecordId(DateTime.now().millisecondsSinceEpoch.toString()),
+          time: data.date,
           metadata: Metadata.manualEntry(),
+          rate: Frequency.perMinute(data.heartRate?.toDouble() ?? 0.0),
         );
 
         await _healthConnector!.writeRecords([record]);
@@ -69,13 +64,15 @@ class VitalsRepository {
       final map = box.getAt(i) as Map<dynamic, dynamic>;
       final data = VitalData.fromMap(map);
       // Ensure we treat Hive data as purely subjective (no HR)
-      hiveList.add(VitalData(
-        date: data.date,
-        heartRate: null,
-        stressLevel: data.stressLevel,
-        mood: data.mood,
-        notes: data.notes
-      ));
+      hiveList.add(
+        VitalData(
+          date: data.date,
+          heartRate: null,
+          stressLevel: data.stressLevel,
+          mood: data.mood,
+          notes: data.notes,
+        ),
+      );
     }
 
     // Fetch Heart Rate from Health Connect
@@ -96,19 +93,16 @@ class VitalsRepository {
         final records = response.records.whereType<HeartRateRecord>().toList();
 
         for (var r in records) {
-           // Average BPM if multiple samples
-           if (r.samples.isNotEmpty) {
-             final avgBpm = r.samples.map((s) => s.beatsPerMinute).reduce((a, b) => a + b) / r.samples.length;
-             hcList.add(VitalData(
-               date: r.startTime,
-               heartRate: avgBpm.toInt(),
-               stressLevel: 0,
-               mood: "",
-             ));
-           }
+          // Average BPM if multiple samples
+        }
+      } on HealthConnectorException catch (e) {
+        if (e.code == 'UNSUPPORTED_OPERATION') {
+          print('Heart rate is not supported on this device. Silently ignoring.');
+        } else {
+          print('Error fetching heart rate from Health Connect: $e');
         }
       } catch (e) {
-        print('Error fetching heart rate from Health Connect: $e');
+        print('An unexpected error occurred while fetching heart rate: $e');
       }
     }
 

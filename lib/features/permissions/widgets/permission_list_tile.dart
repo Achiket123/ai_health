@@ -17,7 +17,7 @@ class PermissionListTile extends StatelessWidget {
     super.key,
   });
 
-  /// Get the color based on permission status
+  
   Color _getStatusColor(BuildContext context) {
     switch (permissionStatus) {
       case PermissionStatus.granted:
@@ -29,7 +29,7 @@ class PermissionListTile extends StatelessWidget {
     }
   }
 
-  /// Get the status icon based on permission status
+  
   IconData _getStatusIcon() {
     switch (permissionStatus) {
       case PermissionStatus.granted:
@@ -41,7 +41,7 @@ class PermissionListTile extends StatelessWidget {
     }
   }
 
-  /// Get the status text based on permission status
+  
   String _getStatusText() {
     switch (permissionStatus) {
       case PermissionStatus.granted:

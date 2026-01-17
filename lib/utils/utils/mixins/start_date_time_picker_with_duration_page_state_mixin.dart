@@ -2,18 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:ai_health/utils/constants/app_texts.dart';
 import 'package:ai_health/utils/utils/mixins/start_date_time_picker_page_state_mixin.dart';
 
-/// Base state class that provides start date/time state management with duration
-/// support for pages that need a start date, time, and duration selection.
+
+
 mixin StartDateTimePickerWithDurationPageStateMixin<T extends StatefulWidget>
     on StartDateTimePickerPageStateMixin<T> {
   TimeOfDay? _duration;
 
-  /// The selected duration (as TimeOfDay).
+  
   TimeOfDay? get duration => _duration;
 
-  /// Calculates the end DateTime from start DateTime and duration.
-  /// Returns null if either startDateTime or duration is not available,
-  /// or if duration is zero.
+  
+  
+  
   DateTime? get endDateTime {
     final start = startDateTime;
     if (start == null || _duration == null) {
@@ -52,33 +52,33 @@ mixin StartDateTimePickerWithDurationPageStateMixin<T extends StatefulWidget>
     _duration = const TimeOfDay(hour: 0, minute: 30);
   }
 
-  /// Sets the duration.
+  
   void setDuration(TimeOfDay? duration) {
     setState(() {
       _duration = duration;
     });
   }
 
-  /// Resets the duration field to null.
+  
   void resetDuration() {
     setState(() {
       _duration = null;
     });
   }
 
-  /// Resets both date, time, and duration fields to null.
+  
   @override
   void resetDateTime() {
     super.resetDateTime();
     resetDuration();
   }
 
-  /// Returns a validator function for duration fields.
-  /// Validates that:
-  /// - Duration is selected
-  /// - Duration is greater than 0
-  /// - Start date/time is selected
-  /// - End date/time can be calculated
+  
+  
+  
+  
+  
+  
   String? Function(TimeOfDay?) get durationValidator {
     return (TimeOfDay? value) {
       if (value == null) {

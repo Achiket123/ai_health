@@ -1,0 +1,52 @@
+import 'package:flutter/material.dart';
+import 'package:health_connector/health_connector_internal.dart';
+import 'package:ai_health/src/common/constants/app_icons.dart';
+import 'package:ai_health/src/common/constants/app_texts.dart';
+import 'package:ai_health/src/common/utils/extensions/ovulation_test_result_type_extension.dart';
+import 'package:ai_health/src/common/widgets/searchable_dropdown_menu_form_field.dart';
+import 'package:ai_health/src/features/write_health_record/widgets/write_forms/base_health_record_write_form.dart';
+
+
+@immutable
+final class OvulationTestWriteForm extends BaseHealthRecordWriteForm {
+  const OvulationTestWriteForm({
+    required super.healthPlatform,
+    required super.onSubmit,
+    super.key,
+  });
+
+  @override
+  OvulationTestFormState createState() => OvulationTestFormState();
+}
+
+
+final class OvulationTestFormState
+    extends BaseHealthRecordWriteFormState<OvulationTestWriteForm> {
+  OvulationTestResult result = OvulationTestResult.negative;
+
+  @override
+  List<Widget> buildFields(BuildContext context) {
+    return [
+      SearchableDropdownMenuFormField<OvulationTestResult>(
+        labelText: AppTexts.testResult,
+        values: OvulationTestResult.values,
+        initialValue: result,
+        onChanged: (value) => setState(() {
+          result = value ?? OvulationTestResult.negative;
+        }),
+        displayNameBuilder: (type) => type.displayName,
+        prefixIcon: AppIcons.science,
+        hint: AppTexts.selectTestResult,
+      ),
+    ];
+  }
+
+  @override
+  HealthRecord buildRecord() {
+    return OvulationTestRecord(
+      time: startDateTime!,
+      metadata: metadata,
+      result: result,
+    );
+  }
+}

@@ -128,7 +128,7 @@ class VegetableMetadata extends Equatable {
   }
 }
 
-/// Nutrition information calculated from dishes
+
 class NutritionInfo extends Equatable {
   final double calories;
   final double protein; // grams
@@ -163,7 +163,7 @@ class NutritionInfo extends Equatable {
     );
   }
 
-  /// Calculate nutrition info from dishes
+  
   static NutritionInfo calculate(List<DishMetadata> dishes) {
     double totalCalories = 0;
     double totalProtein = 0;

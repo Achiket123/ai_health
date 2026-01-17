@@ -3,10 +3,10 @@ import 'package:ai_health/utils/constants/app_texts.dart';
 import 'package:ai_health/utils/widgets/pickers/date_picker_field.dart';
 import 'package:ai_health/utils/widgets/pickers/time_picker_field.dart';
 
-/// A reusable widget that displays date and time picker fields in a single row
-/// with built-in validation for single date/time selection.
-///
-/// This widget provides validation to ensure both date and time are selected.
+
+
+
+
 @immutable
 final class DateTimePickerRow extends StatelessWidget {
   const DateTimePickerRow({
@@ -21,29 +21,29 @@ final class DateTimePickerRow extends StatelessWidget {
     this.validator,
   });
 
-  /// The selected start date (without time).
+  
   final DateTime? startDate;
 
-  /// The selected start time (without date).
+  
   final TimeOfDay? startTime;
 
-  /// Callback when the date is changed.
+  
   final ValueChanged<DateTime> onDateChanged;
 
-  /// Callback when the time is changed.
+  
   final ValueChanged<TimeOfDay> onTimeChanged;
 
-  /// Optional label for the date field. Defaults to [AppTexts.date].
+  
   final String? dateLabel;
 
-  /// Optional label for the time field. Defaults to [AppTexts.time].
+  
   final String? timeLabel;
 
-  /// Spacing between date and time fields. Defaults to 8.0.
+  
   final double spacing;
 
-  /// Optional custom validator. If null, uses the default validation that
-  /// requires both date and time to be selected.
+  
+  
   final String? Function()? validator;
 
   String? _validateDateTime() {

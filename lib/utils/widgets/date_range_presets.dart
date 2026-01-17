@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:ai_health/utils/constants/app_texts.dart';
 
-/// Preset date range options for quick selection.
+
 enum DateRangePreset {
   lastHour,
   today,
@@ -17,7 +17,7 @@ enum DateRangePreset {
     };
   }
 
-  /// Returns the start and end DateTime for this preset.
+  
   ({DateTime start, DateTime end}) getDateRange() {
     final now = DateTime.now();
 
@@ -42,10 +42,10 @@ enum DateRangePreset {
   }
 }
 
-/// A widget that displays quick preset chips for common date ranges.
-///
-/// When a chip is tapped, it calls the [onPresetSelected] callback with
-/// the start and end DateTime values for that preset.
+
+
+
+
 @immutable
 final class DateRangePresets extends StatelessWidget {
   const DateRangePresets({
@@ -53,8 +53,8 @@ final class DateRangePresets extends StatelessWidget {
     super.key,
   });
 
-  /// Callback when a preset is selected.
-  /// Parameters are (startDate, startTime, endDate, endTime).
+  
+  
   final void Function(
     DateTime startDate,
     TimeOfDay startTime,

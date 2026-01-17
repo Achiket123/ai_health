@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:health_connector/health_connector.dart';
 
-/// [HealthDataTypeCategory].
-///
+
+
 class HealthDataCategoryListView<T> extends StatelessWidget {
   const HealthDataCategoryListView({
     required this.groupedItems,
@@ -14,22 +14,22 @@ class HealthDataCategoryListView<T> extends StatelessWidget {
     this.padding,
   });
 
-  /// The items to display, grouped by category.
+  
   final Map<HealthDataTypeCategory, List<T>> groupedItems;
 
-  /// Builder for individual list items.
+  
   final Widget Function(BuildContext context, T item) itemBuilder;
 
-  /// Optional comparator to sort items within each category.
+  
   final int Function(T a, T b)? itemSorter;
 
-  /// Scroll physics for the list.
+  
   final ScrollPhysics? physics;
 
-  /// Whether the list should shrink wrap its content.
+  
   final bool shrinkWrap;
 
-  /// Padding for the list.
+  
   final EdgeInsetsGeometry? padding;
 
   @override

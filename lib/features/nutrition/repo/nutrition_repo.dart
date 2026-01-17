@@ -16,10 +16,10 @@ class NutritionRepository {
   final HealthConnector _healthConnector;
 
   NutritionRepository({required HealthConnector healthConnector})
-      : _healthConnector = healthConnector;
+    : _healthConnector = healthConnector;
 
-  /// Submit nutrition entry with image and metadata
-  /// This stores in Health Connect
+  
+  
   Future<NutritionEntry> submitNutritionEntry({
     required File imageFile,
     required String userId,
@@ -35,7 +35,8 @@ class NutritionRepository {
       final entry = NutritionEntry(
         id: 'nutrition_${DateTime.now().millisecondsSinceEpoch}',
         userId: userId,
-        imageUrl: imageFile.path, // We can't store image in HC, so just keeping local path
+        imageUrl: imageFile
+            .path, // We can't store image in HC, so just keeping local path
         dishes: dishes,
         notes: notes,
         mealTime: mealTime,
@@ -52,7 +53,7 @@ class NutritionRepository {
     }
   }
 
-  /// Get nutrition entries for a user (not really by user, but by device)
+  
   Future<List<NutritionEntry>> getNutritionEntries(String userId) async {
     return getNutritionHistory();
   }
@@ -86,7 +87,7 @@ class NutritionRepository {
 
         // Try to parse dishes from notes if we stored them there
         List<DishMetadata> dishes = [];
-        String notes = r.notes ?? "";
+        String notes = r.foodName ?? "";
 
         return NutritionEntry(
           id: r.id.toString(), // Health Connect ID
@@ -104,7 +105,6 @@ class NutritionRepository {
           createdAt: r.startTime,
         );
       }).toList();
-
     } catch (e) {
       print('Error fetching nutrition entries: $e');
       return [];
@@ -150,7 +150,9 @@ class NutritionRepository {
           }
         }
 
-        dailyCalories.add(DailyCalories(date: dayStart, calories: totalCalories));
+        dailyCalories.add(
+          DailyCalories(date: dayStart, calories: totalCalories),
+        );
       }
 
       dailyCalories.sort((a, b) => a.date.compareTo(b.date));
@@ -169,26 +171,26 @@ class NutritionRepository {
     }
   }
 
-  /// Delete a nutrition entry
+  
   Future<void> deleteNutritionEntry(String entryId) async {
     // Health Connect delete requires ID or time range.
     // If we have ID (and HC supports delete by ID for this record), we use it.
     // For now, implementing delete is tricky without knowing if entryId is HC ID or internal.
     // If it comes from getNutritionHistory, it is HC ID.
     try {
-       await _healthConnector.deleteRecords(
-         DeleteRecordsByIdsRequest(
-           dataType: HealthDataType.nutrition,
-           ids: [entryId]
-         )
-       );
+      await _healthConnector.deleteRecords(
+        DeleteRecordsByIdsRequest(
+          dataType: HealthDataType.nutrition,
+          recordIds: [HealthRecordId(entryId)],
+        ),
+      );
     } catch (e) {
-       // Fallback or ignore
-       print("Delete failed: $e");
+      // Fallback or ignore
+      print("Delete failed: $e");
     }
   }
 
-  /// Mock submit for testing - redirected to real submit
+  
   Future<NutritionEntry> mockSubmitNutritionEntry({
     required File imageFile,
     required String userId,
@@ -197,15 +199,15 @@ class NutritionRepository {
     required DateTime mealTime,
   }) async {
     return submitNutritionEntry(
-        imageFile: imageFile,
-        userId: userId,
-        dishes: dishes,
-        notes: notes,
-        mealTime: mealTime
+      imageFile: imageFile,
+      userId: userId,
+      dishes: dishes,
+      notes: notes,
+      mealTime: mealTime,
     );
   }
 
-  /// Get meals for a specific user on a specific date
+  
   Future<List<NutritionEntry>> getMealsForDate(
     String userId,
     DateTime date,
@@ -225,7 +227,7 @@ class NutritionRepository {
       final records = response.records.whereType<NutritionRecord>().toList();
       records.sort((a, b) => a.startTime.compareTo(b.startTime));
 
-       return records.map((r) {
+      return records.map((r) {
         final calories = r.energy?.inKilocalories ?? 0;
         final protein = r.protein?.inGrams ?? 0;
         final carbs = r.totalCarbohydrate?.inGrams ?? 0;
@@ -236,7 +238,7 @@ class NutritionRepository {
           userId: userId,
           imageUrl: "",
           dishes: [],
-          notes: r.notes ?? "",
+          notes: r.foodName ?? "",
           mealTime: r.startTime,
           nutritionInfo: NutritionInfo(
             calories: calories,
@@ -247,27 +249,25 @@ class NutritionRepository {
           createdAt: r.startTime,
         );
       }).toList();
-
     } catch (e) {
       print('Error fetching meals for date: $e');
       return [];
     }
   }
 
-  /// Write nutrition data to Health Connect
+  
   Future<void> writeNutritionToHealthConnect(NutritionEntry entry) async {
     try {
       final record = NutritionRecord(
         startTime: entry.mealTime,
-        endTime: entry.mealTime.add(const Duration(minutes: 30)), // Meal duration assumption
-        transFat: null, // Optional
+        endTime: entry.mealTime.add(
+          const Duration(minutes: 30),
+        ), // Meal duration assumption
         protein: Mass.grams(entry.nutritionInfo.protein),
         totalCarbohydrate: Mass.grams(entry.nutritionInfo.carbohydrates),
         totalFat: Mass.grams(entry.nutritionInfo.fat),
         energy: Energy.kilocalories(entry.nutritionInfo.calories),
         metadata: Metadata.manualEntry(),
-        notes: entry.notes,
-        name: entry.dishes.isNotEmpty ? entry.dishes.map((d) => d.dishName).join(", ") : "Meal",
       );
 
       await _healthConnector.writeRecords([record]);
@@ -283,12 +283,12 @@ class NutritionRepository {
     }
   }
 
-  /// Delete meal
+  
   Future<void> deleteMeal(String userId, String entryId) async {
-     await deleteNutritionEntry(entryId);
+    await deleteNutritionEntry(entryId);
   }
 
-  /// Get total daily nutrition for a date
+  
   Future<NutritionInfo> getDailyNutrition(String userId, DateTime date) async {
     final meals = await getMealsForDate(userId, date);
 

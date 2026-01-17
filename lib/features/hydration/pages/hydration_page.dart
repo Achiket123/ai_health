@@ -57,9 +57,9 @@ class _HydrationPageState extends State<HydrationPage>
 
   void _addGlass() {
     _hydrationBloc.add(const AddGlassEvent());
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Glass added (+250ml) 💧')),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('Glass added (+250ml) 💧')));
   }
 
   Future<void> _setupReminders() async {
@@ -72,8 +72,7 @@ class _HydrationPageState extends State<HydrationPage>
     );
     setState(() => _remindersActive = true);
   }
-  
-  
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -115,7 +114,8 @@ class _HydrationPageState extends State<HydrationPage>
   }
 
   Widget _buildDashboard(HydrationModel hydration) {
-    final percentage = (hydration.glassesConsumed / hydration.glassesTarget).clamp(0.0, 1.0);
+    final percentage = (hydration.glassesConsumed / hydration.glassesTarget)
+        .clamp(0.0, 1.0);
     final consumedMl = hydration.glassesConsumed * 250;
     final targetMl = hydration.glassesTarget * 250;
 
@@ -172,14 +172,18 @@ class _HydrationPageState extends State<HydrationPage>
                           style: TextStyle(
                             fontSize: 48,
                             fontWeight: FontWeight.bold,
-                            color: percentage > 0.5 ? Colors.white : Colors.blue.shade900,
+                            color: percentage > 0.5
+                                ? Colors.white
+                                : Colors.blue.shade900,
                           ),
                         ),
                         Text(
                           '$consumedMl / $targetMl ml',
                           style: TextStyle(
                             fontSize: 16,
-                            color: percentage > 0.5 ? Colors.white.withValues(alpha: 0.9) : Colors.blue.shade700,
+                            color: percentage > 0.5
+                                ? Colors.white.withValues(alpha: 0.9)
+                                : Colors.blue.shade700,
                             fontWeight: FontWeight.w500,
                           ),
                         ),
@@ -189,9 +193,9 @@ class _HydrationPageState extends State<HydrationPage>
                 ),
               ),
             ),
-            
+
             const SizedBox(height: 40),
-            
+
             // Grid of Glasses
             Text(
               'Daily Goal: ${hydration.glassesTarget} Glasses',
@@ -208,59 +212,68 @@ class _HydrationPageState extends State<HydrationPage>
               runSpacing: 12,
               alignment: WrapAlignment.center,
               children: List.generate(hydration.glassesTarget, (index) {
+                print(hydration.glassesConsumed);
                 final isConsumed = index < hydration.glassesConsumed;
+                print(isConsumed);
                 return AnimatedContainer(
                   duration: const Duration(milliseconds: 300),
                   width: 30,
                   height: 40,
                   decoration: BoxDecoration(
-                    color: isConsumed ? Colors.blue.shade400 : Colors.blue.shade50,
+                    color: isConsumed
+                        ? Colors.blue.shade400
+                        : Colors.blue.shade50,
                     borderRadius: BorderRadius.circular(4),
                     border: Border.all(
-                      color: isConsumed ? Colors.blue.shade400 : Colors.blue.shade200,
+                      color: isConsumed
+                          ? Colors.blue.shade400
+                          : Colors.blue.shade200,
                       width: 2,
                     ),
                   ),
-                  child: isConsumed 
-                    ? const Icon(Icons.check, size: 20, color: Colors.white)
-                    : null,
+                  child: isConsumed
+                      ? const Icon(Icons.check, size: 20, color: Colors.white)
+                      : null,
                 );
               }),
             ),
-             
-             const SizedBox(height: 40),
-             
-             // Setup Reminders Card (Simplified for UI look)
-             Card(
-               elevation: 0,
-               color: Colors.white,
-               shape: RoundedRectangleBorder(
-                 borderRadius: BorderRadius.circular(16),
-                 side: BorderSide(color: Colors.blue.shade100),
-               ),
-               child: SwitchListTile(
-                 title: const Text('Daily Reminders'),
-                 subtitle: Text('Notify every $_reminderIntervalMinutes mins'),
-                 value: _remindersActive,
-                 thumbColor: WidgetStateProperty.resolveWith<Color>((states) {
-                   if (states.contains(WidgetState.selected)) {
-                     return Colors.blue;
-                   }
-                   return Colors.grey;
-                 }),
-                 onChanged: (val) {
-                    setState(() {
-                      _remindersActive = val;
-                      if(val) {
-                        _setupReminders();
-                      } else {
-                        HydrationService.cancelReminders();
-                      }
-                    });
-                 },
-                 secondary: const Icon(Icons.notifications_active_outlined, color: Colors.blue),
-               ),
-             ),
+
+            const SizedBox(height: 40),
+
+            // Setup Reminders Card (Simplified for UI look)
+            Card(
+              elevation: 0,
+              color: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+                side: BorderSide(color: Colors.blue.shade100),
+              ),
+              child: SwitchListTile(
+                title: const Text('Daily Reminders'),
+                subtitle: Text('Notify every $_reminderIntervalMinutes mins'),
+                value: _remindersActive,
+                thumbColor: WidgetStateProperty.resolveWith<Color>((states) {
+                  if (states.contains(WidgetState.selected)) {
+                    return Colors.blue;
+                  }
+                  return Colors.grey;
+                }),
+                onChanged: (val) {
+                  setState(() {
+                    _remindersActive = val;
+                    if (val) {
+                      _setupReminders();
+                    } else {
+                      HydrationService.cancelReminders();
+                    }
+                  });
+                },
+                secondary: const Icon(
+                  Icons.notifications_active_outlined,
+                  color: Colors.blue,
+                ),
+              ),
+            ),
           ],
         ),
       ),
@@ -290,16 +303,18 @@ class _WavePainter extends CustomPainter {
     final path = Path();
     final waveHeight = 10.0;
     final waveLength = size.width;
-    
+
     // Calculate water level height based on percentage
     final waterLevel = size.height * (1 - percentage);
 
     path.moveTo(0, waterLevel);
-    
+
     for (double i = 0; i <= waveLength; i++) {
       // Calculate sine wave
       final offset = (animationValue * 2 * math.pi);
-      final y = waterLevel + math.sin((i / waveLength * 2 * math.pi) + offset) * waveHeight;
+      final y =
+          waterLevel +
+          math.sin((i / waveLength * 2 * math.pi) + offset) * waveHeight;
       path.lineTo(i, y);
     }
 
@@ -313,6 +328,6 @@ class _WavePainter extends CustomPainter {
   @override
   bool shouldRepaint(_WavePainter oldDelegate) {
     return oldDelegate.animationValue != animationValue ||
-           oldDelegate.percentage != percentage;
+        oldDelegate.percentage != percentage;
   }
 }

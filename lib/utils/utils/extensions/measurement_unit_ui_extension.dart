@@ -18,9 +18,9 @@ import 'package:health_connector/health_connector_internal.dart'
 import 'package:ai_health/utils/constants/app_icons.dart';
 import 'package:ai_health/utils/constants/app_texts.dart';
 
-/// Extension on [MeasurementUnit] to provide UI-related properties.
+
 extension MeasurementUnitUI on MeasurementUnit {
-  /// Returns the display name for this measurement unit.
+  
   String get displayName {
     return switch (this) {
       Mass _ => AppTexts.mass,
@@ -39,7 +39,7 @@ extension MeasurementUnitUI on MeasurementUnit {
     };
   }
 
-  /// Returns the icon for this measurement unit.
+  
   IconData get icon {
     return switch (this) {
       Mass _ => AppIcons.mass,

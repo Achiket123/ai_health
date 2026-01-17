@@ -1,0 +1,66 @@
+import 'package:flutter/material.dart';
+import 'package:health_connector/health_connector_internal.dart'
+    as hc
+    show PowerSample, Power;
+import 'package:ai_health/src/common/constants/app_icons.dart';
+import 'package:ai_health/src/common/constants/app_texts.dart';
+import 'package:ai_health/src/features/write_health_record/widgets/write_form_fields/record_sample_form_field_group.dart';
+
+
+@immutable
+final class PowerSampleWriteFormFieldGroup extends StatelessWidget {
+  const PowerSampleWriteFormFieldGroup({
+    required this.startDateTime,
+    required this.endDateTime,
+    required this.onChanged,
+    super.key,
+    this.initialSamples,
+    this.validator,
+  });
+
+  final DateTime? startDateTime;
+  final DateTime? endDateTime;
+  final ValueChanged<List<hc.PowerSample>?> onChanged;
+  final List<hc.PowerSample>? initialSamples;
+  final String? Function(List<hc.PowerSample>?)? validator;
+
+  @override
+  Widget build(BuildContext context) {
+    return RecordSampleFormFieldGroup<hc.PowerSample, double>(
+      title: AppTexts.powerSamples,
+      startDateTime: startDateTime,
+      endDateTime: endDateTime,
+      onChanged: onChanged,
+      initialSamples: initialSamples,
+      validator: validator,
+      defaultValue: 100.0,
+      valueInputBuilder: (index, power, onPowerChanged) {
+        return TextFormField(
+          initialValue: power?.toStringAsFixed(1),
+          decoration: const InputDecoration(
+            labelText: '${AppTexts.power} (W)',
+            border: OutlineInputBorder(),
+            prefixIcon: Icon(AppIcons.power),
+          ),
+          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          onChanged: (value) {
+            final parsedPower = double.tryParse(value);
+            if (parsedPower != null) {
+              onPowerChanged(parsedPower);
+            }
+          },
+        );
+      },
+      sampleFactory: (time, _, power) => hc.PowerSample(
+        time: time,
+        power: hc.Power.watts(power),
+      ),
+      sampleExtractor: (sample) => (
+        time: sample.time,
+        endTime: null as DateTime?,
+        value: sample.power.inWatts,
+      ),
+      valueValidator: (power) => power != null && power > 0,
+    );
+  }
+}

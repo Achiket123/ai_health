@@ -4,9 +4,9 @@ import 'package:health_connector/health_connector_internal.dart'
 import 'package:ai_health/utils/constants/app_icons.dart';
 import 'package:ai_health/utils/constants/app_texts.dart';
 
-/// Extension on [HealthPlatform] to provide UI-related properties.
+
 extension HealthPlatformUI on HealthPlatform {
-  /// Returns the display name for this health platform.
+  
   String get displayName {
     return switch (this) {
       HealthPlatform.appleHealth => AppTexts.appleHealth,
@@ -14,7 +14,7 @@ extension HealthPlatformUI on HealthPlatform {
     };
   }
 
-  /// Returns the icon for this health platform.
+  
   IconData get icon {
     return switch (this) {
       HealthPlatform.appleHealth => AppIcons.apple,
